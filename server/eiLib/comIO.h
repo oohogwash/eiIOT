@@ -6,7 +6,7 @@ class comIO
 {
 public:
     int comReadBufferLen;
-    comIO(){}
+    comIO();
     virtual int open()=0;
     virtual void close()=0;
     virtual int read(unsigned char * buffer, int size)=0;
