@@ -1,6 +1,12 @@
 #ifndef EICOM_H_
 #define EICOM_H_
 
+#include "comIO.h"
+#include "eimsg.h"
+#include "msgrecord.h"
+#include "eiqueue.h"
+#include <stdio.h>
+
 typedef enum _msgID
 {
 	Subscribe,
@@ -45,96 +51,54 @@ typedef enum _cmd
 	RESTART,
 
 }CMD;
-
-
-
-
-
-
-
-
 const int MSGBODYTOLONG = -1;
-
-   // STX, HDRLEN, MSGID, MSGLEN,SECID, MSGBODY,  ETX
-
-// msg and header item sizes
-static const int MAXMSGLEN = 512;
-static const int MSGIDLEN = 4;
-static const int MSGLENLEN = 4;
-static const int MSGSECIDLEN = 4;
-static const int MSGCODELEN = 1;
-static const int MSGHDRLENLEN = 1;
-static const int MSGSEQIDLEN = 1;
-
-enum hdroffsets
-{
-    MSGSTXOFFSET    = 0,
-		MSGCODEOFFSET   = MSGSTXOFFSET + 1,
-    MSGHDRLENOFFSET = MSGCODEOFFSET + MSGCODELEN,
-    MSGIDOFFSET     = MSGHDRLENOFFSET + MSGHDRLENLEN,
-		MSGSEQIDOFFSET  = MSGIDOFFSET + MSGIDLEN,
-    MSGLENOFFSET    = MSGSEQIDOFFSET       + MSGSEQIDLEN,
-    MSGSECIDOFFSET  = MSGLENOFFSET      + MSGLENLEN,
-    MSGBODYOFFSET   = MSGSECIDOFFSET    + MSGSECIDLEN
-};
-
-
-//msg values
-static char STX = 0x02;
-static char ETX = 0x03;
-static char eiMsgID = 'H';
-static const int MAXBODYLEN = MAXMSGLEN - MSGBODYOFFSET;
-static const char MSGHDRLEN = MSGBODYOFFSET;
-
-typedef struct msgHeader
-{
-    int hdrlen;
-    char eiMsgCode;
-    char msgID[MSGIDLEN+1];
-    long msgLen;
-    char secid[MSGSECIDLEN + 1];
-}MSGHEADER;
-typedef union _val {
-    char buff[8];
-    long lval;
-}VAL;
-
-class eiMsg
-{
-    char _msgBuffer[MAXMSGLEN +1];
-    long _len;
-    char _id[MSGIDLEN+1];
-		static char sequenceIDin;//iterate from 0..255 for each msg sent
-		static char sequenceIDout; //iterate from 0..255 for each msg recd
-		char getSequenceID();
-		bool checkSequenceID(char sequenceID);
-public:
-    eiMsg();
-
-    char * body();
-    char *  msgID();
-    long len(void);
-
-    const char * msg(){return _msgBuffer;}
-
-    long setBody(const char * msgId, const void * body, long len);
-    void setLen(const long msgLen);
-    void setID(const char * id);
-    void dump();
-
-};
-
-
 class eiCom
 {
-public:
-    eiCom(){}
-    void init(){}
-    void run(){}
-    eiMsg readMsg();
-    void sendMsg(eiMsg & msg);
-};
 
+	public:
+			static const int READBUFFER_SIZE  = 2048;
+		private:
+    enum msgReadState
+    {
+      mrs_readSTX,
+      mrs_readType,
+        mrs_ReadHdrLen,
+        mrs_ReadHdr,
+        mrs_ReadBody
+
+    }mrs;
+    comIO  *  io;
+
+    int msgBodyLen;
+
+    msgReadState msgState;
+    int seqID;
+    int lastseqID;
+    char msgID[MSGIDLEN];
+    char MSG[MAXMSGLEN];
+    unsigned char readBuffer[READBUFFER_SIZE];
+    static const int MAXSEQNUM = 10;
+    static const int MINSEQNUM = 1;
+public:
+
+    eiCom( comIO * io = 0)
+    {
+        this->io = io;
+        msgState = mrs_readSTX;
+        seqID=-1;
+        lastseqID=-1;
+        msgID[MSGIDLEN] = 0;
+    }
+  eiQueue msgQueue;
+    int init();
+    int processMessages();
+    void sendMsg(eiMsg &msg);
+    eiMsg readMsg();
+    void shutdown();
+		void setIO(comIO * io){this->io = io;};
+;
+
+};
 
 
 

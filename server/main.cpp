@@ -17,7 +17,7 @@ using namespace std;
 void testRS232()
 {
     int i=0,
-         cport_nr=2,        /* /dev/ttyS0 (COM1 on windows) */
+         cport_nr=3,        /* /dev/ttyS0 (COM1 on windows) */
          bdrate=9600;       /* 9600 baud */
 
      char mode[]={'8','N','1',0},
@@ -68,32 +68,41 @@ int main(int argc, char *argv[])
 
 char _msgBuffer[1024];
 
-    eiMsg msg;
+  //  eiMsg msg;
 
 
-     int length = msg.setBody("22", "hoodabcdefgh", 9);
-     memcpy(_msgBuffer, msg.msg(), length);
-      _msgBuffer[length] = 0;
+   //  int length = msg.setBody("22", "hoodabcdefgh", 9);
+   //  memcpy(_msgBuffer, msg.msg(), length);
+    //  _msgBuffer[length] = 0;
 
 
 
-    MsgRecordMgr recmgr;
+   // MsgRecordMgr recmgr;
     comIOCP  io;
-    eiCom com(&io, &recmgr);
-
+    eiCom com(&io);
+    RS232_flushRX(2);
     com.init();
-    com.sendMsg(msg);
+  //  com.sendMsg(msg);
+    unsigned char buff[2];
+    printf("read chars\n");
+    int i;
     while(1)
     {
+       // io.sleep(1000);
+       // i=io.read(buff, 1);
+         //   printf("%c %d %d ",buff[0], buff[0], i);
+
         com.processMessages();
-        comIOCP::sleep(4000);
+        comIOCP::sleep(140);
         while(com.msgQueue.Size() >0 )
         {
             const msgRecord & rec = com.msgQueue.Dequeue();
-            cout << "record " ;
-            printf("[%s]", rec.msgbuffer);
-            cout << rec.msgid << "]" << "size " << com.msgQueue.Size() << endl;
+           // cout << "record " ;
+           // printf("[%s]", rec.msgbuffer);
+         //   cout << rec.msgid << "]" << "size " << com.msgQueue.Size();
+           printf("\n");
         }
+
     }
 
 

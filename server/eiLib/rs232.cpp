@@ -617,7 +617,7 @@ http://technet.microsoft.com/en-us/library/cc732236.aspx
 
   if(Cport[comport_number]==INVALID_HANDLE_VALUE)
   {
-    printf("Unable to open comport %d\n", comport_number);
+    printf("Unable to open comport %d\ [%s]n", comport_number, comports[comport_number]);
     return(1);
   }
 

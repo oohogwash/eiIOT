@@ -3,6 +3,10 @@
 #include <eiLib.h>
 #include <genieArduino.h>
 #include <transform.h>
+
+#include "comIOarduino.h"
+#include "eiCom.h"
+
 #ifndef UNIT_TEST
 
 // This Demo communicates with a 4D Systems Display, configured with ViSi-Genie, utilising the Genie Arduino Library - https://github.com/4dsystems/ViSi-Genie-Arduino-Library.
@@ -38,12 +42,18 @@ Einfo ei;
 int x = 1;
 #define D0 22
 void loopser();
-
+comIOarduino io;
+eiCom  com;
 void setup()
 {
   analogReference(DEFAULT);
   pinMode(D0, OUTPUT);
-    pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
+
+//  com.setIO(&io);
+io.open();
+  //com.init();
+
 /*
     pinMode(A0, INPUT);
       pinMode(A1, INPUT);
@@ -51,145 +61,59 @@ void setup()
           pinMode(A3, INPUT);
           pinMode(A4, INPUT);
 */
-          Serial.begin(9600);      // open the serial port at 9600 bps:
+      //    Serial.begin(9600);      // open the serial port at 9600 bps:
 }
 int val;
 
-char _msgBuffer[1024];
 
-char _id[128];
-
-void _setLen(const long msgLen)
-{
-    char buffer[25];
-    sprintf(buffer, "%4d", msgLen);
-    memcpy(&_msgBuffer[MSGLENOFFSET], buffer, MSGLENLEN);
-}
-void _setID(const char * id)
-{
-    strncpy(&_msgBuffer[MSGIDOFFSET], id, MSGIDLEN);
-    strncpy(_id, id, MSGIDLEN);
-    _id[MSGIDLEN] = '\0';
-}
-
-long _setBody(const char * msgId, const void * body, long len)
-{
-    if(len > MAXBODYLEN)
-    {
-        return MSGBODYTOLONG;
-    }
-    Serial.print(STX);
-    Serial.print( itoa(MSGHDRLEN, _msgBuffer,10));
-    Serial.print(ETX);
-   memset(_msgBuffer, ' ', len + MSGHDRLEN);
-   _msgBuffer[len + MSGHDRLEN] = 0;
-    strncpy(&_msgBuffer[MSGIDOFFSET], msgId, min(MSGIDLEN,strlen(msgId)));
-    memcpy(&_msgBuffer[MSGBODYOFFSET], (char *)body, len);
-    _msgBuffer[MSGSTXOFFSET] =STX;
-    _msgBuffer[len + MSGHDRLEN] = ETX;
-    char ch = MSGHDRLEN;
-     _msgBuffer[MSGHDRLENOFFSET] = ch;
-     strncpy(&_msgBuffer[MSGSECIDOFFSET], "123456789",MSGSECIDLEN);
-    strncpy(&_msgBuffer[MSGCODEOFFSET], eiMsgID, strlen(eiMsgID));
-
-//    setLen( len + MSGHDRLEN); // _len is in network byte order
-//    setID(msgId);
-    return len + MSGHDRLEN; // total message size
-}
 
 
 void readAnalogueValues(int pin)
 {
-
-
-
   val = analogRead(pin);
-//  Serial.print( STX);
-
-
-
-//  eiCom com;
-;
-/*
-Serial.print(STX);
-Serial.print( itoa(msg.len(), _msgBuffer, 10));
-Serial.print(ETX);
-*/
-}
-
-void checkComms()
-
-{
-  byte ch;
-   while( Serial.available())
-   {
-      ch = Serial.read();
-      switch(ch){
-
-
-
-      }
-   }
-
-
 }
 
 
 
+//char _msgBuffer[1024];
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-int comsend = 0;
 void loop ()
 {
-  if(++comsend > 0)
-  {
-    comsend =0;
-    checkComms();
+  comIOarduino io;
+  eiCom  com;
+  com.setIO(&io);
+ eiMsg msg;
+ msg.setBody("42", "Gavan Hood", 9);
+ com.sendMsg(msg);
+//Serial.print("hh" );
+  // checkComms();
 
-    eiMsg msg;
+//    eiMsg msg;
 
+//   Serial.print("X");
+//   int length = msg.setBody("22", "test body", 9);
+//   memcpy(_msgBuffer, msg.msg(), length);
+  //  _msgBuffer[length] = 0;
+//    Serial.print(_msgBuffer);
 
-   int length = msg.setBody("22", "test body", 9);
-   memcpy(_msgBuffer, msg.msg(), length);
-    _msgBuffer[length] = 0;
-    Serial.print(_msgBuffer);
-  }
   digitalWrite(D0, HIGH);
   digitalWrite(LED_BUILTIN, HIGH);
-  delay(100);
+  delay(5);
   digitalWrite(D0, LOW);
   digitalWrite(LED_BUILTIN, LOW);
-  delay(100);
+  delay(50);
   //loopser();
 
   readAnalogueValues(A0);
-  delay(20);
+  delay(1);
   readAnalogueValues(A1);
-    delay(20);
+    delay(5);
   readAnalogueValues(A2);
-    delay(20);
+    delay(5);
   readAnalogueValues(A3);
-  delay(20);
+  delay(5);
   readAnalogueValues(A4);
-    delay(20);
+    delay(5);
 }
 
 

@@ -1,9 +1,10 @@
 #include "comIOcp.h"
 #include "rs232.h"
+#include "eiCom.h"
 
 comIOCP::comIOCP()
 {
-    comReadBufferLen = 4095;
+    comReadBufferLen = 2048;
     comport = 2;
     baudrate = 9600;
     strcpy(mode, "8N1");

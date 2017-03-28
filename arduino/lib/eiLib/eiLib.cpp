@@ -4,12 +4,12 @@
 void Einfo::Init()
 {
 // 	display.Init();
-    com.init();
+//    com.init();
 
 }
 void Einfo::Run()
 {
 //	display.Run();
-    com.run();
+//    com.run();
 
 }

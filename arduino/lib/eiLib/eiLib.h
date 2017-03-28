@@ -10,7 +10,7 @@
 #endif
 
 #include "eiCfg.h"
-#include "eiCom.h"
+
 #include "eiDisplay.h"
 
 namespace stdint{
@@ -40,7 +40,7 @@ using namespace std;
 
 class Einfo
 {
-	eiCom com;
+	//eiCom  com;
     eiDisplay display;
 public:
 	Einfo(){}

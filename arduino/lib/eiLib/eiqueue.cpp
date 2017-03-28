@@ -1,6 +1,6 @@
 #include "eiqueue.h"
 #include <stdlib.h>
-#include "eiLib/eiCom.h"
+#include "eiCom.h"
 
 eiQueue::eiQueue()
 {
@@ -17,32 +17,17 @@ void eiQueue::Enqueue(const char * id, const char * msg, int len)
 {
        return;
    }
-   data[rear].msglen = elemeen;
-   memcpy(data[rear].msgbuffer, element.msgbuffer, element.msglen);
-   memcpy(data[rear].msgid, element.msgid, MSGIDLEN +1);
+   data[rear].msglen = len;
+   memcpy(data[rear].msgbuffer, msg, len);
+   memcpy(data[rear].msgid, id, MSGIDLEN +1);
 
    // MOD is used so that rear indicator
    // can wrap around
-   rear = ++rear % MAX_SIZE;
+   if(++rear >=MAX_SIZE)
+       rear = 0;
+   //rear = ++rear % MAX_SIZE;
 }
 
-void eiQueue::Enqueue(const msgRecord & element)
-{
-   // Don't allow the queue to grow more
-   // than MAX_SIZE - 1
-   if ( Size() == MAX_SIZE - 1 )
-       //throw new QueueOverFlowException();
-{
-       return;
-   }
-   data[rear].msglen = element.msglen;
-   memcpy(data[rear].msgbuffer, element.msgbuffer, element.msglen);
-   memcpy(data[rear].msgid, element.msgid, MSGIDLEN +1);
-
-   // MOD is used so that rear indicator
-   // can wrap around
-   rear = ++rear % MAX_SIZE;
-}
 msgRecord empty;
 const msgRecord & eiQueue::Dequeue()
 {
@@ -81,6 +66,3 @@ bool eiQueue::isEmpty()
 {
    return ( front == rear ) ? true : false;
 }
-
-
-

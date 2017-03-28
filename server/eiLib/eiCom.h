@@ -76,6 +76,16 @@ class eiCom
         mrs_ReadBody
 
     }mrs;
+
+
+    enum MsgSeqNumAction
+    {
+        msna_ignore,        // do nothing
+        msna_set,           // set the current sequence number to the number in the msg
+        msna_check_warn,    // check the seq number if it does not match warn but still process
+        msna_check_error    // check the seq number if it does not match reject msg
+    };
+
     MsgRecordMgr * mgr;
     comIO  *  io;
 
@@ -84,21 +94,27 @@ class eiCom
     msgReadState msgState;
     int seqID;
     int lastseqID;
+    int msgIdx;
     char msgID[MSGIDLEN];
     char MSG[MAXMSGLEN];
-    unsigned char readBuffer[10240];
-    static const int MAXSEQNUM = 125;
+   static const int READBUFFER_SIZE  = 2048;
+    unsigned char readBuffer[READBUFFER_SIZE];
+    static const int MAXSEQNUM = 10;
     static const int MINSEQNUM = 1;
+    int counter ;
+    MsgSeqNumAction msgSeqAction(char * msgID);
 
 public:
-    eiCom( comIO * io = 0, MsgRecordMgr * recmgr=0)
+
+
+    eiCom( comIO * io = 0)
     {
         this->io = io;
-        this->mgr = recmgr;
         msgState = mrs_readSTX;
         seqID=-1;
         lastseqID=-1;
         msgID[MSGIDLEN] = 0;
+        counter = 0;
     }
   eiQueue msgQueue;
     int init();

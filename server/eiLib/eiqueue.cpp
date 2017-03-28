@@ -19,7 +19,12 @@ void eiQueue::Enqueue(const char * id, const char * msg, int len)
    }
    data[rear].msglen = len;
    memcpy(data[rear].msgbuffer, msg, len);
+   data[rear].msgbuffer[len]=0;
+
+   printf("---->%d-[%s]\n", len, msg);
+
    memcpy(data[rear].msgid, id, MSGIDLEN +1);
+   data[rear].msgid[MSGIDLEN]=0;
 
    // MOD is used so that rear indicator
    // can wrap around

@@ -1,11 +1,11 @@
 #ifndef EIQUEUE_H
 #define EIQUEUE_H
 
-#include "eiLib/msgrecord.h"
+#include "msgrecord.h"
 
 class eiQueue
 {
-    static const int MAX_SIZE = 5;
+    static const int MAX_SIZE = 55;
 private:
    msgRecord data[MAX_SIZE];
    int front;
@@ -13,7 +13,6 @@ private:
 public:
    eiQueue();
    void Enqueue(const char * id, const char * msg, int len);
-   void Enqueue(const msgRecord & element);
    const msgRecord & Dequeue();
    const msgRecord & Front();
    int Size();

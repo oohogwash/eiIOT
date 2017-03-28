@@ -395,10 +395,6 @@ printf("counter = %d", counter);
                     msgState = mrs_readSTX;
                     msgIdx = -1;
                  }
-                else
-                {
-                   //i printf("(%c-%d)", MSG[msgIdx], msgIdx);
-                }
                 break;
             }
         }

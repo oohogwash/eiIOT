@@ -2,21 +2,34 @@
 #ifndef ARDUINO
 #include <memory.h>
 #include <iostream>
+#include "comIOcp.h"
+#include "rs232.h"
 #else
+#include "comIOarduino.h"
 #include <stdio.h>
 #include "Arduino.h"
 #endif
+
+
+
+
 
 using namespace  std;
 
 char msgtest[10230]; // for testing
 void eiCom::sendMsg(eiMsg & msg)
 {
-    memcpy(msgtest, msg.msg(), msg.len());
+  io->write( msg.msg(), msg.len());
+  /*  memcpy(msgtest, msg.msg(), msg.len());
+    msgState = mrs_readSTX;
+    seqID=-1;
+    lastseqID=-1;
+    msgID[MSGIDLEN] = 0;
+    */
 }
 
-char eiMsg::sequenceIDin = 0;
-char eiMsg::sequenceIDout = 0;
+
+
 
 int testIdx = 0;
 char readStrmChar()
@@ -54,7 +67,7 @@ long readStrmLong(char * strm, int len = 4)
        strncpy(buffer, strm, len);
    }
    long val;
-   sscanf(buffer,"%4d", &val);
+   sscanf(buffer,"%4d", val);
    return val;
 
 }
@@ -71,10 +84,10 @@ eiMsg eiCom::readMsg()
         if(ch == STX)
         {
             readStrmString(msgHeader.eiMsgCode, 2);
-            if( !strncmp(eiMsgID, msgHeader.eiMsgCode, 2) )
+            //if( !strncmp(eiMsgID, msgHeader.eiMsgCode, 2) )
             {
                 buffer[0]=STX;
-                strncpy(&buffer[1], eiMsgID, 2);
+           //     strncpy(&buffer[1], eiMsgID, 2);
                 break; // it is an eiMsg
             }
         }
@@ -109,7 +122,7 @@ eiMsg eiCom::readMsg()
 //   msg.setID(msgHeader.msgID);
   msg.setBody(msgHeader.msgID, msgBody, msgHeader.msgLen );
   msg.setLen(msgHeader.msgLen);
-
+  return msg;
 }
 
 eiMsg::eiMsg()
@@ -131,12 +144,15 @@ long eiMsg::len(void)
     buffer[MSGLENLEN] = 0;
     memcpy(buffer, &_msgBuffer[MSGLENOFFSET],  MSGLENLEN);
     sscanf(buffer, "%4ld", &_len);
-    return _len;
+    return _len + + MSGHDRLEN;
 }
+
+char eiMsg::sequenceIDin = 0;
+char eiMsg::sequenceIDout = 0;
 
 char eiMsg::getSequenceID()
 {
-  if(sequenceIDout>=125)
+  if(sequenceIDout>=10)
   {
     sequenceIDout = 1;
   }
@@ -181,7 +197,129 @@ void eiMsg::setID(const char * id)
     strncpy(_id, id, MSGIDLEN);
     _id[MSGIDLEN] = '\0';
 }
+
 void eiMsg::dump()
 {
     printf("eiMsg ID %s, len %ld \n", msgID(), len());
+}
+
+int eiCom::processMessages()
+{
+    int idx=0;
+    char msgType;
+    char hdrlen=0;
+    int counter = 0;
+    char msgBodyBuffer[MSGLENLEN +1];
+    msgBodyBuffer[MSGLENLEN]=0;
+    int readBufferIndex = 0;
+    int n =1;
+    int numProcessed =0;
+
+
+    while(n>0)
+    {
+      int n = io->read(readBuffer, io->comReadBufferLen);
+        printf("n=%d\n",n);
+      if(n <= 0)
+      {
+          printf("empty, leave\n");
+          return numProcessed;
+      }
+      else
+      {
+        for(readBufferIndex = 0; readBufferIndex < n; readBufferIndex++)
+        {
+            numProcessed++;
+            switch(msgState){
+            case mrs_readSTX:
+                if(readBuffer[readBufferIndex]== STX)
+                {
+                    idx=0;
+                    MSG[idx++]= readBuffer[readBufferIndex];
+                    msgState = mrs_readType;
+                }
+                else
+                {
+                   // printf("ignore %c\n", buf[i]);
+                }
+                break;
+            case mrs_readType:
+                if(readBuffer[readBufferIndex] == 72) // check if supported msg type
+                {
+                    msgType = MSG[idx++] = readBuffer[readBufferIndex];
+                    msgState = mrs_ReadHdrLen;
+                }
+                else
+                {
+                    printf("invalid msg %c %d\n", readBuffer[readBufferIndex],readBuffer[readBufferIndex]);
+                    // not a supported message so drop out
+                    msgState = mrs_readSTX;
+                }
+                break;
+            case mrs_ReadHdrLen:
+                hdrlen= readBuffer[readBufferIndex];
+                MSG[idx++]=readBuffer[readBufferIndex];
+                counter = hdrlen -idx; //allow for STX/ msgType etc already read
+              //  printf("hdr len %d\n", hdrlen);
+                msgState = mrs_ReadHdr;
+                break;
+            case mrs_ReadHdr:
+                MSG[idx++]=readBuffer[readBufferIndex];
+                if(--counter <= 0)
+                {
+                    memcpy(msgBodyBuffer,&MSG[MSGLENOFFSET], MSGLENLEN);
+                    msgBodyLen = counter = atoi(msgBodyBuffer);
+                    memcpy(msgID, &MSG[MSGIDOFFSET], MSGIDLEN);
+                    seqID = MSG[MSGSEQIDOFFSET];
+
+                    if(lastseqID !=  -1) //not first msg
+                    {
+                        if(lastseqID == MAXSEQNUM)
+                        {
+                            if(seqID != MINSEQNUM)
+                            {
+                                printf("invalid seq number %d %d\n", seqID, lastseqID);
+                                msgState = mrs_readSTX;
+                            }
+                        }
+                        else if (lastseqID != seqID - 1)
+                        {
+                             printf("invalid seq number %d %d\n", seqID, lastseqID);
+                             msgState = mrs_readSTX;
+                        }
+                    }
+                    lastseqID = seqID;
+                   // printf("sequence id = %d\n",seqID );
+                  //printf("msg body len %d\n", counter);
+                    msgState = mrs_ReadBody;
+                 //   printf("sequence id = [%c] %d\n", MSG[MSGSEQIDOFFSET], MSG[MSGSEQIDOFFSET]);
+                }
+                break;
+            case mrs_ReadBody:
+                MSG[idx++]=readBuffer[readBufferIndex];
+                if(--counter <=0)
+                {
+                    MSG[idx]= 0;
+                  //  printf("[%s]%d\n", MSG, idx);
+                    msgQueue.Enqueue(msgID, &MSG[MSGBODYOFFSET], msgBodyLen);
+                   //mgr->addMessage(msgID, MSG, idx);
+                   printf("msg added queue size = %d\n", msgQueue.Size());
+                    msgState = mrs_readSTX;
+                 }
+                break;
+            }
+        }
+      }
+
+    }
+    return readBufferIndex;
+}
+
+int eiCom::init()
+{
+    return io->open();
+}
+void eiCom::shutdown()
+{
+    io->close();
 }
