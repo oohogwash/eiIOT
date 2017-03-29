@@ -203,12 +203,211 @@ void eiMsg::dump()
     printf("eiMsg ID %s, len %ld \n", msgID(), len());
 }
 
+eiCom::MsgSeqNumAction eiCom::msgSeqAction(char * msgID)
+{
+
+    switch(atoi(msgID))
+    {
+        case 1: // logon
+        case 42:
+            return msna_ignore;
+        case 2: // logged on , succes
+            return msna_set;
+        case 3:
+            return msna_check_error;
+        case 4:
+            return msna_check_warn;
+    default: // generic msg publication
+            return msna_ignore;
+    }
+
+}
+
+
 int eiCom::processMessages()
+{
+
+    char msgType;
+    char hdrlen=0;
+
+    char msgBodyBuffer[MSGLENLEN +1];
+    int readBufferIndex = 0;
+    int n =1;
+    int numProcessed =0;
+    int ignore = 0;
+/*
+    if(msgIdx > -1)
+{
+    MSG[msgIdx+1] = 0;
+    printf("msg[%s]\n", MSG);
+}
+    */
+    while(n>0)
+    {
+      int n = io->read(readBuffer, io->comReadBufferLen);
+    //    printf("n=%d %d\n",n, io->comReadBufferLen);
+      if(n <= 0)
+      {
+        //  printf("empty, leave\n");
+          return numProcessed;
+      }
+      else
+      {
+
+
+
+
+
+      //  readBuffer[n] = 0;   /* always put a "null" at the end of a string! */
+        for(readBufferIndex = 0; readBufferIndex < n; readBufferIndex++)
+        {
+         //   printf("%d.",msgIdx);
+  //          printf("%c-%d ",readBuffer[readBufferIndex],  readBuffer[readBufferIndex]);
+            numProcessed++;
+            switch(msgState){
+            case mrs_readSTX:
+                if(readBuffer[readBufferIndex]== STX)
+                {
+                    msgIdx=0;
+                    MSG[msgIdx++]= readBuffer[readBufferIndex];
+                    msgState = mrs_readType;
+                    ignore = 0;
+                }
+                else
+                {
+                    ignore++;
+                    //printf("ignore %c\n", buf[i]);
+                }
+                break;
+            case mrs_readType:
+                if(readBuffer[readBufferIndex] == 72) // check if supported msg type
+                {
+                    msgType = MSG[msgIdx++] = readBuffer[readBufferIndex];
+                    msgState = mrs_ReadHdrLen;
+                }
+                else
+                {
+                    printf("invalid msg %c %d\n", readBuffer[readBufferIndex],readBuffer[readBufferIndex]);
+                    // not a supported message so drop out
+                    msgState = mrs_readSTX;
+                    msgIdx = -1;
+                }
+                break;
+            case mrs_ReadHdrLen:
+                hdrlen= readBuffer[readBufferIndex];
+                MSG[msgIdx++]=readBuffer[readBufferIndex];
+                counter = hdrlen -msgIdx; //allow for STX/ msgType etc already read
+              //  printf("hdr len %d\n", hdrlen);
+                msgState = mrs_ReadHdr;
+                break;
+            case mrs_ReadHdr:
+                MSG[msgIdx++]=readBuffer[readBufferIndex];
+                if(--counter <= 0)
+                {
+                    memcpy(msgBodyBuffer,&MSG[MSGLENOFFSET], MSGLENLEN);
+                    msgBodyBuffer[MSGLENLEN] = 0;
+                    msgBodyLen = counter = atoi(msgBodyBuffer);
+printf("counter = %d", counter);
+                    memcpy(msgID, &MSG[MSGIDOFFSET], MSGIDLEN);
+                    seqID = MSG[MSGSEQIDOFFSET];
+                    MsgSeqNumAction msna = msgSeqAction(msgID);
+                //    printf("msna = %d\n", msna);
+                    switch(msna)
+                    {
+                    case msna_check_warn:
+                    case msna_check_error:
+                        if(lastseqID !=  -1) //not first msg
+                        {
+                            if(lastseqID == MAXSEQNUM)
+                            {
+
+                                if(seqID != MINSEQNUM)
+                                {
+                                    printf("invalid seq number %d %d\n", seqID, lastseqID);
+                                    if(msna == msna_check_error)
+                                    {
+                                      msgState = mrs_readSTX;
+                                      msgIdx=-1;
+                                    }
+                                }
+                            }
+                            else if (lastseqID != seqID - 1)
+                            {
+                                 printf("invalid seq number %d %d\n", seqID, lastseqID);
+                                 if(msna == msna_check_error)
+                                 {
+                                    msgState = mrs_readSTX;
+                                    msgIdx=-1;
+                                 }
+                            }
+                        }
+
+                    }
+                    lastseqID = seqID;
+                   // printf("sequence id = %d\n",seqID );
+                  //printf("msg body len %d\n", counter);
+
+
+                    msgState = mrs_ReadBody;
+              //      printf("sequence id = [%c] %d\n", MSG[MSGSEQIDOFFSET], MSG[MSGSEQIDOFFSET]);
+
+                }
+                break;
+            case mrs_ReadBody:
+                 MSG[msgIdx++]=readBuffer[readBufferIndex];
+
+                if(--counter <=0)
+                {
+                    MSG[msgIdx]= 0;
+                   // printf("msgidx = %d\n", msgIdx);
+                    msgQueue.Enqueue(msgID, &MSG[MSGBODYOFFSET], msgBodyLen);
+                   //mgr->addMessage(msgID, MSG, idx);
+                 //  printf("[%s]===[%s]\n", msgID, &MSG[MSGBODYOFFSET]);
+                //   printf("msg added queue size = %d\n", msgQueue.Size());
+                    msgState = mrs_readSTX;
+                    msgIdx = -1;
+                 }
+                break;
+            }
+        }
+      }
+
+    }
+    // setup buffer for next read if chars read in msg
+
+    return readBufferIndex;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+int eiCom::processMessages1()
 {
     int idx=0;
     char msgType;
     char hdrlen=0;
-    int counter = 0;
+
     char msgBodyBuffer[MSGLENLEN +1];
     msgBodyBuffer[MSGLENLEN]=0;
     int readBufferIndex = 0;

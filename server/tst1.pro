@@ -36,7 +36,26 @@ SOURCES += main.cpp \
     eiLib/rs232.cpp \
     test/testrs232.cpp \
     eiLib/comIOcp.cpp \
-    eiLib/eiqueue.cpp
+    eiLib/eiqueue.cpp \
+    eiLib/eibody.cpp \
+    eiLib/eilogon.cpp \
+    eiArduino/Thread.cpp \
+    eiArduino/ThreadController.cpp \
+    eiLib/comIO.cpp \
+    eiLib/comio_os.cpp \
+    eiLib/comIOcp.cpp \
+    eiLib/eiCfg.cpp \
+    eiLib/eiCom.cpp \
+    eiLib/eiControl.cpp \
+    eiLib/eiDisplay.cpp \
+    eiLib/eiLib.cpp \
+    eiLib/eiqueue.cpp \
+    eiLib/rs232.cpp \
+    test/testros.cpp \
+    test/testthread.cpp \
+    serial.cpp \
+    eiLib/eimsg.cpp \
+    msgBody.cpp
 
 
 
@@ -78,7 +97,27 @@ HEADERS += \
     eiLib/comIOCP.h \
     eiLib/eiqueue.h \
     eiLib/msgrecord.h \
-    eiLib/eimsg.h
+    eiLib/eimsg.h \
+    eiLib/eibody.h \
+    eiLib/eilogon.h \
+    eiArduino/Thread.h \
+    eiArduino/ThreadController.h \
+    eiLib/comIO.h \
+    eiLib/comio_os.h \
+    eiLib/comIOCP.h \
+    eiLib/eiCfg.h \
+    eiLib/eiCom.h \
+    eiLib/eiControl.h \
+    eiLib/eiDisplay.h \
+    eiLib/eiLib.h \
+    eiLib/eimsg.h \
+    eiLib/eiqueue.h \
+    eiLib/msgrecord.h \
+    eiLib/rs232.h \
+    test/testthread.h \
+    serial.h \
+    unix.h \
+    msBody.h
 
 
 

@@ -67,4 +67,39 @@ public:
 
 };
 
+
+
+class msgBody
+{
+  virtual int serialize(unsigned char * msg) = 0;
+  virtual void deserialize( unsigned char * msg)=0;
+};
+
+class logon //: msgBody
+{
+  const static int NAMELEN = 10;
+  const static int PWDLEN = 10;
+public:
+  logon();
+  logon(char * name, char * pwd);
+
+  char name[10];
+  char pwd[10];
+
+  int serialize(unsigned char * msg);
+  void deserialize( unsigned char * msg);
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
 #endif // EIMSG_H

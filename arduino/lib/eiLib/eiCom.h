@@ -54,7 +54,13 @@ typedef enum _cmd
 const int MSGBODYTOLONG = -1;
 class eiCom
 {
-
+	enum MsgSeqNumAction
+	{
+			msna_ignore,        // do nothing
+			msna_set,           // set the current sequence number to the number in the msg
+			msna_check_warn,    // check the seq number if it does not match warn but still process
+			msna_check_error    // check the seq number if it does not match reject msg
+	};
 	public:
 			static const int READBUFFER_SIZE  = 2048;
 		private:
@@ -68,17 +74,23 @@ class eiCom
 
     }mrs;
     comIO  *  io;
-
+ int msgIdx;
     int msgBodyLen;
 
     msgReadState msgState;
     int seqID;
+		int counter;
     int lastseqID;
     char msgID[MSGIDLEN];
     char MSG[MAXMSGLEN];
     unsigned char readBuffer[READBUFFER_SIZE];
     static const int MAXSEQNUM = 10;
     static const int MINSEQNUM = 1;
+		MsgSeqNumAction msgSeqAction(char * msgID);
+
+
+
+
 public:
 
     eiCom( comIO * io = 0)
@@ -88,10 +100,12 @@ public:
         seqID=-1;
         lastseqID=-1;
         msgID[MSGIDLEN] = 0;
+				counter = 0;
     }
   eiQueue msgQueue;
     int init();
     int processMessages();
+		int processMessages1();
     void sendMsg(eiMsg &msg);
     eiMsg readMsg();
     void shutdown();

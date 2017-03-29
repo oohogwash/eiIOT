@@ -74,7 +74,42 @@ void readAnalogueValues(int pin)
 }
 
 
+class msgBody
+{
+  virtual int serialize(unsigned char * msg) = 0;
+  virtual void deserialize( unsigned char * msg)=0;
+};
 
+class logon: msgBody
+{
+  const static int NAMELEN = 10;
+  const static int PWDLEN = 10;
+public:
+  logon(){}
+  logon(char * name, char * pwd)
+  {
+    strcpy(this->name, name);
+    strcpy(this->pwd, pwd);
+  }
+
+  char name[10];
+  char pwd[10];
+
+  int serialize(unsigned char * msg);
+  void deserialize( unsigned char * msg);
+};
+
+int logon::serialize(unsigned char * msg)
+{
+  memcpy(msg, name, NAMELEN);
+  memcpy(&msg[NAMELEN], pwd, PWDLEN);
+  return NAMELEN + PWDLEN;
+}
+void logon::deserialize( unsigned char * msg)
+{
+  memcpy(name, msg, NAMELEN);
+  memcpy(pwd, &msg[NAMELEN], PWDLEN);
+}
 //char _msgBuffer[1024];
 
 void loop ()
@@ -83,7 +118,13 @@ void loop ()
   eiCom  com;
   com.setIO(&io);
  eiMsg msg;
- msg.setBody("42", "Gavan Hood", 9);
+logon lo("gavan", "mypwd");
+unsigned char buffer[128];
+int l = lo.serialize(buffer);
+msg.setBody("5", buffer, l);
+
+
+// msg.setBody("5", "Gavan Hood", 9);
  com.sendMsg(msg);
 //Serial.print("hh" );
   // checkComms();
@@ -101,7 +142,7 @@ void loop ()
   delay(5);
   digitalWrite(D0, LOW);
   digitalWrite(LED_BUILTIN, LOW);
-  delay(50);
+  delay(500);
   //loopser();
 
   readAnalogueValues(A0);
