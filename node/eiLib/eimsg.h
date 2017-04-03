@@ -71,15 +71,64 @@ public:
 
 class msgBody
 {
-  virtual int serialize(unsigned char * msg) = 0;
+   public:
+  static int memcpyn(char *dest, int destlen, char * source, int sourcelen);
+  static int strcpyn(char * dest, int destlen, char * source);
+  virtual char id() = 0;
+  static const int TOKENLEN = 4;
+  unsigned char token[TOKENLEN];
+  virtual int serialize(unsigned char * msg) =0;
   virtual void deserialize( unsigned char * msg)=0;
+
 };
 
-class logon //: msgBody
+
+
+
+class emptyMsgBody : public msgBody
+{
+
+public:
+  emptyMsgBody(){}
+  int serialize(unsigned char * msg);
+  void deserialize( unsigned char * msg);
+
+
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+/// The message definitions
+///
+/// 
+
+typedef enum MessageId
+{
+    mi_User=200,
+    mi_Sys=50,
+    mi_Logon,
+    mi_LogonResponse,
+    mi_Logoff,
+    mi_Ping,
+    mi_Loopback,
+    mi_Publish,
+    mi_Subscribe,
+    mi_Notify,
+    mi_Publications,
+    mi_Command,
+    mi_CommandResponse,
+    mi_Request,
+    mi_Response,
+
+    
+}MESSAGE_ID;
+
+
+class logon : public msgBody
 {
   const static int NAMELEN = 10;
   const static int PWDLEN = 10;
 public:
+  char id(){return mi_Logon;}
   logon();
   logon(char * name, char * pwd);
 
@@ -91,12 +140,126 @@ public:
 };
 
 
+class logonResponse : public emptyMsgBody
+{
+public:
+     char id(){return mi_LogonResponse;}
+    logonResponse(){}
+};
+
+
+class logOff : public emptyMsgBody
+{
+public:
+     char id(){return mi_Logoff;}
+    logOff(){}
+};
 
 
 
+class ping : public emptyMsgBody
+{
+public:
+  char id(){return mi_Ping;}
+  ping(){}
+};
+
+
+class loopback : public msgBody
+{
+
+    char textLen;
+    char text[256];
+public:
+  char id(){return mi_Loopback;}
+  loopback();
+  loopback(char * text, char lenText);
+  int serialize(unsigned char * msg);
+  void deserialize( unsigned char * msg);
+};
+
+class pubsubBase : public msgBody
+{
+ static const int MAXTOPICLEN = 128;
+ char topic[MAXTOPICLEN];
+ static const int MAXIDLEN = 32;
+ char id[MAXIDLEN];
+ static const int MAXPSMSGLEN = 256;
+ char psmsg[MAXPSMSGLEN];
+public:
+  pubsubBase(){}
+  pubsubBase( char * topic, char * id, char * msg, int msglen )
+  {
+      strcpyn(this->topic, MAXTOPICLEN, topic);
+      strcpyn(this->id, MAXIDLEN, id);
+      memcpyn(psmsg, MAXPSMSGLEN, msg, msglen);
+  }
+  int serialize(unsigned char * msg);
+  void deserialize( unsigned char * msg);
+};
 
 
 
+class publish : public pubsubBase
+{
+
+public:
+  char id(){return mi_Publish;}
+  publish(){}
+  publish(char * topic, char * id, char * msg, int len):
+      pubsubBase(  topic, id, msg, len){}
+};
+
+class subscribe : public pubsubBase
+{
+
+public:
+  char id(){return mi_Subscribe;}
+  subscribe(){}
+  subscribe(char * topic, char * id, char * msg, int len) :
+      pubsubBase(  topic, id, msg, len){}
+};
+class notify : public pubsubBase
+{
+
+public:
+  char id(){return mi_Notify;}
+  notify(){}
+  notify(char * topic, char * eventId, char * event, int eventLen):
+    pubsubBase(  topic, eventId, event, eventLen){}
+};
+
+class command : public msgBody
+{
+
+public:
+  char id(){return mi_Command;}
+  command( char * id, char * cmd, int len);
+};
+
+class commandResponse : public msgBody
+{
+
+public:
+    char id(){return mi_CommandResponse;}
+    commandResponse();
+};
+
+
+class request : public msgBody
+{
+
+public:
+  char id(){return mi_Request;}
+  request( char * id, char * cmd, int len);
+};
+
+class response : public msgBody
+{
+public:
+    char id(){return mi_Response;}
+    response();
+};
 
 
 
