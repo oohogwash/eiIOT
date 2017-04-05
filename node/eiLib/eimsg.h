@@ -85,13 +85,13 @@ public:
 class msgBody
 {
    public:
-  static int memcpyn(char *dest, int destlen, char * source, int sourcelen);
+  static int memcpyn(char *dest, int destlen, char * source, int sourcelen, bool addNullTerminator=false);
   static int strcpyn(char * dest, int destlen, char * source);
-  virtual char id() = 0;
+  virtual char mid() = 0;
   static const int TOKENLEN = 4;
   unsigned char token[TOKENLEN];
   virtual int serialize(unsigned char * msg) =0;
-  virtual void deserialize( unsigned char * msg)=0;
+  virtual int deserialize( unsigned char * msg)=0;
 
 };
 
@@ -104,7 +104,7 @@ class emptyMsgBody : public msgBody
 public:
   emptyMsgBody(){}
   int serialize(unsigned char * msg);
-  void deserialize( unsigned char * msg);
+  int deserialize( unsigned char * msg);
 
 
 };
@@ -147,34 +147,29 @@ typedef struct msginfo{
 
 
 
-
-
-
-
-
 class logon : public msgBody
 {
-  const static int NAMELEN = 10;
-  const static int PWDLEN = 10;
+  const static int NAMELEN = 40;
+  const static int PWDLEN = 40;
 public:
-  char id(){return mi_Logon;}
+  char mid(){return mi_Logon;}
   logon();
   logon(char * name, char * pwd);
 
-  char name[10];
+  char name[NAMELEN];
   char nameLen;
-  char pwd[10];
+  char pwd[PWDLEN];
   char pwdLen;
 
   int serialize(unsigned char * msg);
-  void deserialize( unsigned char * msg);
+  int deserialize( unsigned char * msg);
 };
 
 
 class logonResponse : public emptyMsgBody
 {
 public:
-     char id(){return mi_LogonResponse;}
+     char mid(){return mi_LogonResponse;}
     logonResponse(){}
 };
 
@@ -182,7 +177,7 @@ public:
 class logOff : public emptyMsgBody
 {
 public:
-     char id(){return mi_Logoff;}
+     char mid(){return mi_Logoff;}
     logOff(){}
 };
 
@@ -191,7 +186,7 @@ public:
 class ping : public emptyMsgBody
 {
 public:
-  char id(){return mi_Ping;}
+  char mid(){return mi_Ping;}
   ping(){}
 };
 
@@ -200,18 +195,22 @@ class loopback : public msgBody
 {
     static const int MAXTEXTLEN = 256;
     char textLen;
-    char text[MAXTEXTLEN];
 
 public:
-  char id(){return mi_Loopback;}
+  char text[MAXTEXTLEN];
+  char mid(){return mi_Loopback;}
   loopback();
-  loopback(char * text, char lenText);
+  loopback(char * text);
   int serialize(unsigned char * msg);
-  void deserialize( unsigned char * msg);
+  int deserialize( unsigned char * msg);
 };
+
 
 class pubsubBase : public msgBody
 {
+
+public:
+
  static const int MAXTOPICLEN = 128;
  char topic[MAXTOPICLEN];
  char topicLen;
@@ -222,7 +221,6 @@ class pubsubBase : public msgBody
  char psmsg[MAXPSMSGLEN];
  int psmsgLen;
 
-public:
   pubsubBase(){}
   pubsubBase( char * topic, char * id, char * msg, int msglen )
   {
@@ -231,7 +229,7 @@ public:
       psmsgLen =  memcpyn(psmsg, MAXPSMSGLEN, msg, msglen);
   }
   int serialize(unsigned char * msg);
-  void deserialize( unsigned char * msg);
+  int deserialize( unsigned char * msg);
 };
 
 
@@ -240,7 +238,7 @@ class publish : public pubsubBase
 {
 
 public:
-  char id(){return mi_Publish;}
+  char mid(){return mi_Publish;}
   publish(){}
   publish(char * topic, char * id, char * msg, int len):
       pubsubBase(  topic, id, msg, len){}
@@ -250,7 +248,7 @@ class subscribe : public pubsubBase
 {
 
 public:
-  char id(){return mi_Subscribe;}
+  char mid(){return mi_Subscribe;}
   subscribe(){}
   subscribe(char * topic, char * id, char * msg, int len) :
       pubsubBase(  topic, id, msg, len){}
@@ -259,7 +257,7 @@ class notify : public pubsubBase
 {
 
 public:
-  char id(){return mi_Notify;}
+  char mid(){return mi_Notify;}
   notify(){}
   notify(char * topic, char * eventId, char * event, int eventLen):
     pubsubBase(  topic, eventId, event, eventLen){}
@@ -269,7 +267,7 @@ class command : public msgBody
 {
 
 public:
-  char id(){return mi_Command;}
+  char mid(){return mi_Command;}
   command( char * id, char * cmd, int len);
 };
 
@@ -277,7 +275,7 @@ class commandResponse : public msgBody
 {
 
 public:
-    char id(){return mi_CommandResponse;}
+    char mid(){return mi_CommandResponse;}
     commandResponse();
 };
 
@@ -286,14 +284,14 @@ class request : public msgBody
 {
 
 public:
-  char id(){return mi_Request;}
+  char mid(){return mi_Request;}
   request( char * id, char * cmd, int len);
 };
 
 class response : public msgBody
 {
 public:
-    char id(){return mi_Response;}
+    char mid(){return mi_Response;}
     response();
 };
 
@@ -304,11 +302,11 @@ class get : public msgBody
     char itemLen;
 
 public:
-  char id(){return mi_Get;}
+  char mid(){return mi_Get;}
   get();
   get( char * item);
   int serialize(unsigned char * msg);
-  void deserialize( unsigned char * msg);
+  int deserialize( unsigned char * msg);
 };
 
 class set : public get
@@ -317,11 +315,11 @@ class set : public get
     char info[MAXDATALEN];
     int infoLen;
 public:
-    char id(){return mi_Set;}
+    char mid(){return mi_Set;}
     set();
     set(char * item, char * info, int len);
     int serialize(unsigned char * msg);
-    void deserialize( unsigned char * msg);
+    int deserialize( unsigned char * msg);
 };
 
 

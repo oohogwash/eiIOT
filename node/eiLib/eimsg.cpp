@@ -29,16 +29,20 @@ MSGINFO messageInfo [] = {
 int msgBody::strcpyn(char * dest, int destlen, char * source)
 {
     int sourcelen = strlen(source);
-    int lcopy = fmin(destlen, sourcelen) -1;
+    int lcopy = fmin(destlen, sourcelen);
     memcpy(dest, source, lcopy);
     dest[lcopy] = 0;
     return lcopy;
 }
 
-int msgBody::memcpyn(char *dest, int destlen, char * source, int sourcelen)
+int msgBody::memcpyn(char *dest, int destlen, char * source, int sourcelen, bool addnullterminator)
 {
     int lcopy = fmin(destlen, sourcelen) ;
     memcpy(dest, source, lcopy);
+    if(addnullterminator)
+    {
+        dest[lcopy]=0;
+    }
     return lcopy;
 }
 
@@ -53,19 +57,18 @@ logon::logon(char * name, char * pwd)
 int logon::serialize(unsigned char * msg)
 {
   msg[0]=nameLen;
-  memcpy(&msg[0], name, NAMELEN);
-  msg[NAMELEN + 1] = pwdLen;
-  memcpy(&msg[NAMELEN+2], pwd, PWDLEN);
-  return NAMELEN + PWDLEN + 2;
+  memcpy(&msg[1], name, nameLen);
+  msg[nameLen + 1] = pwdLen;
+  memcpy(&msg[nameLen+2], pwd, pwdLen);
+  return nameLen + pwdLen + 2;
 }
-void logon::deserialize( unsigned char * msg)
+int logon::deserialize( unsigned char * msg)
 {
   nameLen = msg[0];
-  memcpyn(name, NAMELEN, (char *)&msg[1], nameLen);
-  name[nameLen]=0;
+  memcpyn(name, NAMELEN, (char *)&msg[1], nameLen, true);
   pwdLen = msg[nameLen+1];
-  memcpy(pwd, &msg[nameLen+2], pwdLen);
-  pwd[pwdLen] = 0;
+  memcpyn(pwd, PWDLEN, (char *)&msg[nameLen+2], pwdLen, true);
+  return nameLen+2+pwdLen;
 }
 
 
@@ -74,13 +77,13 @@ int emptyMsgBody::serialize(unsigned char * msg)
 {
   return 0;
 }
-void emptyMsgBody::deserialize( unsigned char * msg)
+int emptyMsgBody::deserialize( unsigned char * msg)
 {
-
+    return 0;
 }
 
 loopback::loopback(){}
-loopback::loopback(char * text, char len)
+loopback::loopback(char * text)
 {
   textLen = strcpyn(this->text, MAXTEXTLEN, text);
 }
@@ -89,13 +92,13 @@ int loopback::serialize(unsigned char * msg)
 {
   msg[0] = textLen;
   memcpy(&msg[1], text, textLen);
-  return textLen;
+  return textLen+1;
 }
-void loopback::deserialize( unsigned char * msg)
+int loopback::deserialize( unsigned char * msg)
 {
   textLen = msg[0];
-  memcpy(text, &msg[1], textLen);
-  text[textLen]=0;
+  memcpyn(text, MAXTEXTLEN,(char *) &msg[1], textLen, true);
+  return textLen+1;
 }
 
 
@@ -106,19 +109,22 @@ void loopback::deserialize( unsigned char * msg)
 int pubsubBase::serialize(unsigned char * msg)
 {
     msg[0] = topicLen;
-    memcpyn((char *)msg, MAXTOPICLEN, topic, topicLen );
+    memcpyn((char *)&msg[1], MAXTOPICLEN, topic, topicLen );
     msg[topicLen + 1] = idLen;
     memcpy((char *)&msg[ topicLen+2], id, idLen);
-    msg[topicLen+3+idLen] = psmsgLen;
+    msg[topicLen+2+idLen] = psmsgLen;
     memcpy(&msg[topicLen + 3 + idLen],  (char *)psmsg, psmsgLen);
     return topicLen + 3 + idLen + psmsgLen;
 }
-void pubsubBase::deserialize( unsigned char * msg)
+int pubsubBase::deserialize( unsigned char * msg)
 {
-    strcpyn(topic, MAXTOPICLEN, psmsg);
-    strcpyn(id, MAXIDLEN, &psmsg[ MAXTOPICLEN]);
-    memcpyn((char *)msg, MAXPSMSGLEN, &psmsg[MAXTOPICLEN + MAXIDLEN], MAXPSMSGLEN);
-
+    topicLen = msg[0];
+    memcpyn(topic, MAXTOPICLEN, (char *)&msg[1], topicLen,true);
+    idLen=msg[topicLen+1];
+    memcpyn(id, MAXIDLEN, (char *)&msg[topicLen + 2],idLen, true);
+    psmsgLen = msg[topicLen+2+idLen];
+    memcpyn((char *)psmsg, MAXPSMSGLEN, (char *)&msg[topicLen + 3 +idLen], psmsgLen);
+    return topicLen+3+idLen+ psmsgLen;
 }
 
 
@@ -137,11 +143,11 @@ int get::serialize(unsigned char * msg)
   memcpy(&msg[1], item, itemLen);
   return itemLen + 1;
 }
-void get::deserialize( unsigned char * msg)
+int get::deserialize( unsigned char * msg)
 {
     itemLen = msg[0];
-    memcpy(item, &msg[1], itemLen);
-    item[itemLen]=0;
+    memcpyn(item, MAXITEMLEN, (char *)&msg[1], itemLen, true);
+    return itemLen+1;
 }
 set::set()
 {
@@ -153,13 +159,14 @@ set::set(char * item, char * data, int len) : get(item)
 }
 int set::serialize(unsigned char * msg)
 {
-    get::serialize(msg);
-  return 0;
+    int len = get::serialize(msg);
+    return len;
 }
-void set::deserialize( unsigned char * msg)
+int set::deserialize( unsigned char * msg)
 {
-    get::deserialize(msg);
+    int len = get::deserialize(msg);
 
+    return len;
 }
 
 

@@ -11,13 +11,37 @@ int main(int argc, char *argv[])
     eiCom com(&io);
     com.init();
     printf("read chars\n");
-    logon logon;
+    logon n1, logon((char *)"userhoodhhhhhhhhhh", (char *)"mypwd");
     eiMsg msg;
     logonResponse lr;
-    loopback l;
+    loopback l1, l((char *)"loopbacktest");
     ping p;
-    notify n;
+    subscribe n((char *)"topic", (char *)"==ID==", (char *)"event",5);
     publish pub;
+
+
+    cout<<l.text << endl;
+
+
+    cout  << n.topic << "endl" << n.id << "endl"  <<"|" << n.psmsg << "endl" << n.psmsgLen << endl;
+
+    unsigned char msg1[1024];
+
+    int len = l.serialize(msg1);
+    msg1[len] = 0;
+    cout<<"[" << msg1 <<"]"<< endl;
+
+
+
+
+    l1.deserialize(msg1);
+
+//    cout  << endl << n1.name << endl << n1.pwd << endl;
+    cout<<l1.text << endl;
+
+
+
+    return 0;
 
     while(1)
     {
