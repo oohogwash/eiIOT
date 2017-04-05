@@ -78,13 +78,6 @@ class eiCom
     }mrs;
 
 
-    enum MsgSeqNumAction
-    {
-        msna_ignore,        // do nothing
-        msna_set,           // set the current sequence number to the number in the msg
-        msna_check_warn,    // check the seq number if it does not match warn but still process
-        msna_check_error    // check the seq number if it does not match reject msg
-    };
 
     MsgRecordMgr * mgr;
     comIO  *  io;

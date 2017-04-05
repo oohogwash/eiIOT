@@ -231,7 +231,7 @@ void eiMsg::dump()
     printf("eiMsg ID %s, len %ld \n", msgID(), len());
 }
 
-eiCom::MsgSeqNumAction eiCom::msgSeqAction(char * msgID)
+MsgSeqNumAction eiCom::msgSeqAction(char * msgID)
 {
 
     switch(atoi(msgID))

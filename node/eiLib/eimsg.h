@@ -1,6 +1,8 @@
 #ifndef EIMSG_H
 #define EIMSG_H
 
+
+
 // msg and header item sizes
 static const int MAXMSGLEN = 512;
 static const int MSGIDLEN = 4;
@@ -21,6 +23,17 @@ enum hdroffsets
     MSGSECIDOFFSET  = MSGLENOFFSET      + MSGLENLEN,
     MSGBODYOFFSET   = MSGSECIDOFFSET    + MSGSECIDLEN
 };
+
+
+enum MsgSeqNumAction
+{
+    msna_ignore,        // do nothing
+    msna_set,           // set the current sequence number to the number in the msg
+    msna_check_warn,    // check the seq number if it does not match warn but still process
+    msna_check_error    // check the seq number if it does not match reject msg
+};
+
+
 
 
 
@@ -118,9 +131,25 @@ typedef enum MessageId
     mi_CommandResponse,
     mi_Request,
     mi_Response,
+    mi_Get,
+    mi_Set
 
     
 }MESSAGE_ID;
+
+typedef struct msginfo{
+    MESSAGE_ID id;
+    const char * name;
+    const char * desc;
+    MsgSeqNumAction action;
+}MSGINFO;
+
+
+
+
+
+
+
 
 
 class logon : public msgBody
@@ -133,7 +162,9 @@ public:
   logon(char * name, char * pwd);
 
   char name[10];
+  char nameLen;
   char pwd[10];
+  char pwdLen;
 
   int serialize(unsigned char * msg);
   void deserialize( unsigned char * msg);
@@ -167,9 +198,10 @@ public:
 
 class loopback : public msgBody
 {
-
+    static const int MAXTEXTLEN = 256;
     char textLen;
-    char text[256];
+    char text[MAXTEXTLEN];
+
 public:
   char id(){return mi_Loopback;}
   loopback();
@@ -182,17 +214,21 @@ class pubsubBase : public msgBody
 {
  static const int MAXTOPICLEN = 128;
  char topic[MAXTOPICLEN];
+ char topicLen;
  static const int MAXIDLEN = 32;
  char id[MAXIDLEN];
+ char idLen;
  static const int MAXPSMSGLEN = 256;
  char psmsg[MAXPSMSGLEN];
+ int psmsgLen;
+
 public:
   pubsubBase(){}
   pubsubBase( char * topic, char * id, char * msg, int msglen )
   {
-      strcpyn(this->topic, MAXTOPICLEN, topic);
-      strcpyn(this->id, MAXIDLEN, id);
-      memcpyn(psmsg, MAXPSMSGLEN, msg, msglen);
+      topicLen = strcpyn(this->topic, MAXTOPICLEN, topic);
+      idLen = strcpyn(this->id, MAXIDLEN, id);
+      psmsgLen =  memcpyn(psmsg, MAXPSMSGLEN, msg, msglen);
   }
   int serialize(unsigned char * msg);
   void deserialize( unsigned char * msg);
@@ -259,6 +295,33 @@ class response : public msgBody
 public:
     char id(){return mi_Response;}
     response();
+};
+
+class get : public msgBody
+{
+    static const int MAXITEMLEN = 128;
+    char item[MAXITEMLEN];
+    char itemLen;
+
+public:
+  char id(){return mi_Get;}
+  get();
+  get( char * item);
+  int serialize(unsigned char * msg);
+  void deserialize( unsigned char * msg);
+};
+
+class set : public get
+{
+    static const int MAXDATALEN = 1024;
+    char info[MAXDATALEN];
+    int infoLen;
+public:
+    char id(){return mi_Set;}
+    set();
+    set(char * item, char * info, int len);
+    int serialize(unsigned char * msg);
+    void deserialize( unsigned char * msg);
 };
 
 
