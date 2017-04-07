@@ -10,6 +10,13 @@
 #include "comIOcp.h"
 #include "rs232.h"
 
+
+#ifndef min
+#define min(a,b) ((a<b)? a : b)
+#endif
+
+
+
 using namespace  std;
 
 char msgtest[10230]; // for testing

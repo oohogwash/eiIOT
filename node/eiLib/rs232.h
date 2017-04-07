@@ -50,26 +50,6 @@ extern "C" {
 #include <stdio.h>
 #include <string.h>
 
-//#define __linux__
-
-
-#if defined(__linux__) || defined(__FreeBSD__)
-
-#include <termios.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <limits.h>
-#include <sys/file.h>
-#include <errno.h>
-
-#else
-
-#include <windows.h>
-
-#endif
 
 int RS232_OpenComport(int, int, const char *);
 int RS232_PollComport(int, unsigned char *, int);

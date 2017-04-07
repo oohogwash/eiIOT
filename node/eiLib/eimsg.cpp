@@ -3,7 +3,7 @@
 #include <math.h>
 
 
-#include <windows.h>
+#include "osheader.h"
 
 
 MSGINFO messageInfo [] = {

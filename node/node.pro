@@ -30,4 +30,5 @@ HEADERS += \
     eiLib/msgrecord.h \
     eiLib/rs232.h \
     eiLib/eiCom.cpp.autosave \
-    eiLib/eiCom.cpp.autosave.J11824
+    eiLib/eiCom.cpp.autosave.J11824 \
+    eiLib/osheader.h

@@ -1,6 +1,7 @@
 #include "comIOcp.h"
 #include "rs232.h"
 #include "eiCom.h"
+#include "osheader.h"
 
 comIOCP::comIOCP()
 {

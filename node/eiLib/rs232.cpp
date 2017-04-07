@@ -1,4 +1,5 @@
 #include "rs232.h"
+#include "osheader.h"
 
 rs232::rs232()
 {
@@ -42,7 +43,7 @@ rs232::rs232()
 #include "rs232.h"
 #define WIN32
 
-#if defined(__linux__) || defined(__FreeBSD__)   /* Linux & FreeBSD */
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__MAC_OSX__)  /* Linux & FreeBSD  & Mac*/
 
 #define RS232_PORTNR  38
 
