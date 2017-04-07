@@ -19,25 +19,43 @@ int main(int argc, char *argv[])
     subscribe n((char *)"topic", (char *)"==ID==", (char *)"event",5);
     publish pub;
 
+    set s((char *)"sjjkl", (char *)"abcde", 4);
 
-    cout<<l.text << endl;
+
+    memcpy(s.token,"1234",4);
+    s.tokenLen = 4;
 
 
-    cout  << n.topic << "endl" << n.id << "endl"  <<"|" << n.psmsg << "endl" << n.psmsgLen << endl;
+    cout<< "[" << s.item << s.itemLen << s.info << "]" << (int)s.tokenLen <<"}}}"<<endl;
+
+
+
+   // cout  << n.topic << "endl" << n.id << "endl"  <<"|" << n.psmsg << "endl" << n.psmsgLen << endl;
 
     unsigned char msg1[1024];
 
-    int len = l.serialize(msg1);
-    msg1[len] = 0;
-    cout<<"[" << msg1 <<"]"<< endl;
+    int len = s.serialize(msg1);
+    msg1[len]=0;
+
+    cout<<"----msg0=" << (int)msg1[0] << "[" << msg1 <<"]"<< len<< endl;
+
+
+    set s1;
+    s1.deserialize(msg1);
+
+    cout<< "==>[" << s1.item << "|" << s1.infoLen << "|" << s1.info << "]" << s1.token <<endl;
 
 
 
 
-    l1.deserialize(msg1);
+
+
+
+
+   // l1.deserialize(msg1);
 
 //    cout  << endl << n1.name << endl << n1.pwd << endl;
-    cout<<l1.text << endl;
+    //cout<<l1.text << endl;
 
 
 

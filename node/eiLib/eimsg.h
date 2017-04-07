@@ -88,10 +88,12 @@ class msgBody
   static int memcpyn(char *dest, int destlen, char * source, int sourcelen, bool addNullTerminator=false);
   static int strcpyn(char * dest, int destlen, char * source);
   virtual char mid() = 0;
-  static const int TOKENLEN = 4;
-  unsigned char token[TOKENLEN];
-  virtual int serialize(unsigned char * msg) =0;
-  virtual int deserialize( unsigned char * msg)=0;
+  static const int MAXTOKENLEN = 4;
+  unsigned char token[MAXTOKENLEN+1];
+  unsigned char tokenLen;
+  virtual int serialize(unsigned char * msg);
+  virtual int deserialize( unsigned char * msg);
+  msgBody(): tokenLen(0){}
 
 };
 
@@ -156,9 +158,9 @@ public:
   logon();
   logon(char * name, char * pwd);
 
-  char name[NAMELEN];
+  char name[NAMELEN+1];
   char nameLen;
-  char pwd[PWDLEN];
+  char pwd[PWDLEN+1];
   char pwdLen;
 
   int serialize(unsigned char * msg);
@@ -197,7 +199,7 @@ class loopback : public msgBody
     char textLen;
 
 public:
-  char text[MAXTEXTLEN];
+  char text[MAXTEXTLEN+1];
   char mid(){return mi_Loopback;}
   loopback();
   loopback(char * text);
@@ -212,13 +214,13 @@ class pubsubBase : public msgBody
 public:
 
  static const int MAXTOPICLEN = 128;
- char topic[MAXTOPICLEN];
+ char topic[MAXTOPICLEN+1];
  char topicLen;
  static const int MAXIDLEN = 32;
- char id[MAXIDLEN];
+ char id[MAXIDLEN+1];
  char idLen;
  static const int MAXPSMSGLEN = 256;
- char psmsg[MAXPSMSGLEN];
+ char psmsg[MAXPSMSGLEN+1];
  int psmsgLen;
 
   pubsubBase(){}
@@ -298,11 +300,12 @@ public:
 class get : public msgBody
 {
     static const int MAXITEMLEN = 128;
-    char item[MAXITEMLEN];
-    char itemLen;
+
 
 public:
-  char mid(){return mi_Get;}
+    char item[MAXITEMLEN+1];
+    char itemLen;
+    char mid(){return mi_Get;}
   get();
   get( char * item);
   int serialize(unsigned char * msg);
@@ -312,9 +315,10 @@ public:
 class set : public get
 {
     static const int MAXDATALEN = 1024;
-    char info[MAXDATALEN];
-    int infoLen;
+
 public:
+    char info[MAXDATALEN+1];
+    int infoLen;
     char mid(){return mi_Set;}
     set();
     set(char * item, char * info, int len);

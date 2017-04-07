@@ -46,6 +46,22 @@ int msgBody::memcpyn(char *dest, int destlen, char * source, int sourcelen, bool
     return lcopy;
 }
 
+#include <stdio.h>
+int msgBody::serialize(unsigned char * msg)
+{
+    msg[0] = tokenLen;
+    memcpyn((char *)&msg[1], MAXTOKENLEN, (char *)token, tokenLen );
+    return tokenLen + 1;
+}
+int msgBody::deserialize( unsigned char * msg)
+{
+    tokenLen =  msg[0];
+    memcpyn((char *)token, MAXTOKENLEN, (char *)&msg[1], tokenLen,true);
+    return tokenLen+1;
+}
+
+
+
 
 logon::logon(){}
 logon::logon(char * name, char * pwd)
@@ -56,30 +72,32 @@ logon::logon(char * name, char * pwd)
 
 int logon::serialize(unsigned char * msg)
 {
-  msg[0]=nameLen;
-  memcpy(&msg[1], name, nameLen);
-  msg[nameLen + 1] = pwdLen;
-  memcpy(&msg[nameLen+2], pwd, pwdLen);
-  return nameLen + pwdLen + 2;
+  int bodyLen = msgBody::serialize(msg);
+  msg[bodyLen]=nameLen;
+  memcpy(&msg[1+ bodyLen], name, nameLen);
+  msg[nameLen + 1 + bodyLen] = pwdLen;
+  memcpy(&msg[nameLen+2 + bodyLen], pwd, pwdLen);
+  return nameLen + pwdLen + 2 + bodyLen;
 }
 int logon::deserialize( unsigned char * msg)
 {
-  nameLen = msg[0];
-  memcpyn(name, NAMELEN, (char *)&msg[1], nameLen, true);
-  pwdLen = msg[nameLen+1];
-  memcpyn(pwd, PWDLEN, (char *)&msg[nameLen+2], pwdLen, true);
-  return nameLen+2+pwdLen;
+    int bodyLen = msgBody::deserialize(msg);
+  nameLen = msg[bodyLen];
+  memcpyn(name, NAMELEN, (char *)&msg[1 + bodyLen], nameLen, true);
+  pwdLen = msg[nameLen+1+ bodyLen];
+  memcpyn(pwd, PWDLEN, (char *)&msg[nameLen+2+bodyLen], pwdLen, true);
+  return nameLen+2+pwdLen + bodyLen;
 }
 
 
 
 int emptyMsgBody::serialize(unsigned char * msg)
 {
-  return 0;
+  return  msgBody::serialize(msg);
 }
 int emptyMsgBody::deserialize( unsigned char * msg)
 {
-    return 0;
+    return msgBody::deserialize(msg);
 }
 
 loopback::loopback(){}
@@ -90,15 +108,17 @@ loopback::loopback(char * text)
 
 int loopback::serialize(unsigned char * msg)
 {
-  msg[0] = textLen;
-  memcpy(&msg[1], text, textLen);
-  return textLen+1;
+    int bodyLen = msgBody::serialize(msg);
+  msg[bodyLen] = textLen;
+  memcpy(&msg[1+ bodyLen], text, textLen);
+  return textLen+1+ bodyLen;
 }
 int loopback::deserialize( unsigned char * msg)
 {
-  textLen = msg[0];
-  memcpyn(text, MAXTEXTLEN,(char *) &msg[1], textLen, true);
-  return textLen+1;
+    int bodyLen = msgBody::deserialize(msg);
+  textLen = msg[bodyLen];
+  memcpyn(text, MAXTEXTLEN,(char *) &msg[1+ bodyLen], textLen, true);
+  return textLen+1+ bodyLen;
 }
 
 
@@ -108,25 +128,28 @@ int loopback::deserialize( unsigned char * msg)
 
 int pubsubBase::serialize(unsigned char * msg)
 {
-    msg[0] = topicLen;
-    memcpyn((char *)&msg[1], MAXTOPICLEN, topic, topicLen );
-    msg[topicLen + 1] = idLen;
-    memcpy((char *)&msg[ topicLen+2], id, idLen);
-    msg[topicLen+2+idLen] = psmsgLen;
-    memcpy(&msg[topicLen + 3 + idLen],  (char *)psmsg, psmsgLen);
-    return topicLen + 3 + idLen + psmsgLen;
+      int bodyLen = msgBody::serialize(msg);
+    msg[bodyLen] = topicLen;
+    memcpyn((char *)&msg[1 + bodyLen], MAXTOPICLEN, topic, topicLen );
+    msg[topicLen + 1 + bodyLen] = idLen;
+    memcpy((char *)&msg[ topicLen+2 + bodyLen], id, idLen);
+    msg[topicLen+2+idLen + bodyLen] = psmsgLen;
+    memcpy(&msg[topicLen + 3 + idLen + bodyLen],  (char *)psmsg, psmsgLen);
+    return topicLen + 3 + idLen + psmsgLen + bodyLen;
 }
 int pubsubBase::deserialize( unsigned char * msg)
 {
-    topicLen = msg[0];
-    memcpyn(topic, MAXTOPICLEN, (char *)&msg[1], topicLen,true);
-    idLen=msg[topicLen+1];
-    memcpyn(id, MAXIDLEN, (char *)&msg[topicLen + 2],idLen, true);
-    psmsgLen = msg[topicLen+2+idLen];
-    memcpyn((char *)psmsg, MAXPSMSGLEN, (char *)&msg[topicLen + 3 +idLen], psmsgLen);
-    return topicLen+3+idLen+ psmsgLen;
+    int bodyLen = msgBody::deserialize(msg);
+    topicLen = msg[bodyLen];
+    memcpyn(topic, MAXTOPICLEN, (char *)&msg[1+bodyLen], topicLen,true);
+    idLen=msg[topicLen+1+bodyLen];
+    memcpyn(id, MAXIDLEN, (char *)&msg[topicLen + 2+bodyLen],idLen, true);
+    psmsgLen = msg[topicLen+2+idLen+bodyLen];
+    memcpyn((char *)psmsg, MAXPSMSGLEN, (char *)&msg[topicLen + 3 +idLen+bodyLen], psmsgLen);
+    return topicLen+3+idLen+ psmsgLen+bodyLen;
 }
 
+#include <stdio.h>
 
 get::get()
 {
@@ -139,15 +162,20 @@ get::get( char * item)
 }
 int get::serialize(unsigned char * msg)
 {
-  msg[0] = itemLen;
-  memcpy(&msg[1], item, itemLen);
-  return itemLen + 1;
+  int bodyLen = msgBody::serialize(msg);
+  printf("len = %d ", bodyLen);
+
+  msg[bodyLen] = itemLen;
+  memcpy(&msg[1 + bodyLen], item, itemLen);
+  return itemLen + 1 + bodyLen;
 }
 int get::deserialize( unsigned char * msg)
 {
-    itemLen = msg[0];
-    memcpyn(item, MAXITEMLEN, (char *)&msg[1], itemLen, true);
-    return itemLen+1;
+    int bodyLen = msgBody::deserialize(msg);
+    printf("len =-=> %d ", bodyLen);
+    itemLen = msg[bodyLen];
+    memcpyn(item, MAXITEMLEN, (char *)&msg[1+ bodyLen], itemLen, true);
+    return itemLen+1 + bodyLen;
 }
 set::set()
 {
@@ -155,18 +183,28 @@ set::set()
 set::set(char * item, char * data, int len) : get(item)
 {
     infoLen = memcpyn(this->info, MAXDATALEN, data, len);
-
+printf("infolen=%d", infoLen);
 }
+
 int set::serialize(unsigned char * msg)
 {
     int len = get::serialize(msg);
-    return len;
+
+    msg[len+1] = infoLen;
+    memcpyn((char *)&msg[len+2], MAXDATALEN, info, infoLen);
+    return len +1 + infoLen;
 }
 int set::deserialize( unsigned char * msg)
 {
-    int len = get::deserialize(msg);
 
-    return len;
+    int len = get::deserialize(msg);
+    printf("len = %d ", len);
+    infoLen = msg[len+1];
+    printf("len = %d ", infoLen);
+
+    memcpyn(info, MAXDATALEN, (char *)&msg[len+2], infoLen);
+    printf("[[[%4s]]]", info);
+    return len +1 + infoLen;
 }
 
 
