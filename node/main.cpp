@@ -2,24 +2,25 @@
 using namespace std;
 #include "eiLib/comIOCP.h"
 #include "eiLib/eiCom.h"
-
+#include "eiLib/eimsg.h"
 
 
 int main(int argc, char *argv[])
 {
-    comIOCP  io;
-    eiCom com(&io);
+    Subscribe n; //(char *)"topic", (char *)"==ID==", (char *)"event",5);
+
+    ComIOCP  io;
+    EiCom com(&io);
     com.init();
     printf("read chars\n");
-    logon n1, logon((char *)"userhoodhhhhhhhhhh", (char *)"mypwd");
-    eiMsg msg;
-    logonResponse lr;
-    loopback l1, l((char *)"loopbacktest");
-    ping p;
-    subscribe n((char *)"topic", (char *)"==ID==", (char *)"event",5);
-    publish pub;
+    Logon n1, logon((char *)"userhoodhhhhhhhhhh", (char *)"mypwd");
+    EiMsg msg;
+    LogonResponse lr;
+    Loopback l1, l((char *)"loopbacktest");
+    Ping p;
+    Publish pub;
 
-    set s((char *)"sjjkl", (char *)"abcde", 4);
+    Put s((char *)"sjjkl", (char *)"abcde", 4);
 
 
     memcpy(s.token,"1234",4);
@@ -40,7 +41,7 @@ int main(int argc, char *argv[])
     cout<<"----msg0=" << (int)msg1[0] << "[" << msg1 <<"]"<< len<< endl;
 
 
-    set s1;
+    Put s1;
     s1.deserialize(msg1);
 
     cout<< "==>[" << s1.item << "|" << s1.infoLen << "|" << s1.info << "]" << s1.token <<endl;
@@ -64,10 +65,10 @@ int main(int argc, char *argv[])
     while(1)
     {
         com.processMessages();
-        comIOCP::sleep(140);
+        ComIOCP::sleep(140);
        while(com.msgQueue.Size() >0 )
         {
-            const msgRecord & rec = com.msgQueue.Dequeue();
+            const MsgRecord & rec = com.msgQueue.Dequeue();
             switch(atoi(rec.msgid))
             {
             case mi_Logon:

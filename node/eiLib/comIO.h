@@ -2,11 +2,11 @@
 #define COMIO_H
 
 
-class comIO
+class ComIO
 {
 public:
     int comReadBufferLen;
-    comIO();
+    ComIO();
     virtual int open()=0;
     virtual void close()=0;
     virtual int read(unsigned char * buffer, int size)=0;

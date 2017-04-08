@@ -2,13 +2,13 @@
 #include <stdlib.h>
 #include "eiLib/eiCom.h"
 
-eiQueue::eiQueue()
+EiQueue::EiQueue()
 {
    front = -1;
    rear = -1;
 }
 
-void eiQueue::Enqueue(const char * id, const char * msg, int len)
+void EiQueue::Enqueue(const char * id, const char * msg, int len)
 {
    // Don't allow the queue to grow more
    // than MAX_SIZE - 1
@@ -33,8 +33,8 @@ void eiQueue::Enqueue(const char * id, const char * msg, int len)
    //rear = ++rear % MAX_SIZE;
 }
 
-msgRecord empty;
-const msgRecord & eiQueue::Dequeue()
+MsgRecord empty;
+const MsgRecord & EiQueue::Dequeue()
 {
    if ( isEmpty() )
     {
@@ -52,7 +52,7 @@ const msgRecord & eiQueue::Dequeue()
    return data[idx];
 }
 
-const msgRecord & eiQueue::Front()
+const MsgRecord & EiQueue::Front()
 {
    if ( isEmpty() )
       // throw new QueueEmptyException();
@@ -62,12 +62,12 @@ const msgRecord & eiQueue::Front()
    return data[front];
 }
 
-int eiQueue::Size()
+int EiQueue::Size()
 {
    return abs(rear - front);
 }
 
-bool eiQueue::isEmpty()
+bool EiQueue::isEmpty()
 {
    return ( front == rear ) ? true : false;
 }

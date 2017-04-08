@@ -20,7 +20,7 @@
 using namespace  std;
 
 char msgtest[10230]; // for testing
-void eiCom::sendMsg(eiMsg & msg)
+void EiCom::sendMsg(EiMsg & msg)
 {
     memcpy(msgtest, msg.msg(), msg.len());
     msgState = mrs_readSTX;
@@ -74,9 +74,9 @@ long readStrmLong(char * strm, int len = 4)
 
 }
 
-eiMsg eiCom::readMsg()
+EiMsg EiCom::readMsg()
 {
-    eiMsg msg;
+    EiMsg msg;
     char buffer[MAXMSGLEN];
     MSGHEADER msgHeader;
     char ch;
@@ -127,20 +127,20 @@ eiMsg eiCom::readMsg()
   return msg;
 }
 
-eiMsg::eiMsg()
+EiMsg::EiMsg()
 {
    memset(_msgBuffer, '_', MAXMSGLEN);
 }
 
-char * eiMsg::body()
+char * EiMsg::body()
 {
     return &_msgBuffer[MSGBODYOFFSET];
 }
-char *  eiMsg::msgID()
+char *  EiMsg::msgID()
 {
    return  _id;
 }
-long eiMsg::len(void)
+long EiMsg::len(void)
 {
     char buffer[MSGLENLEN +1];
     buffer[MSGLENLEN] = 0;
@@ -149,10 +149,10 @@ long eiMsg::len(void)
     return _len + MSGHDRLEN;
 }
 
-char eiMsg::sequenceIDin = 0;
-char eiMsg::sequenceIDout = 0;
+char EiMsg::sequenceIDin = 0;
+char EiMsg::sequenceIDout = 0;
 
-char eiMsg::getSequenceID()
+char EiMsg::getSequenceID()
 {
   if(sequenceIDout>= 10)
   {
@@ -165,7 +165,7 @@ char eiMsg::getSequenceID()
   return sequenceIDout;
 }
 
-long eiMsg::setBody(const char * msgId, const void * body, long len)
+long EiMsg::setBody(const char * msgId, const void * body, long len)
 {
 
   if(len > MAXBODYLEN)
@@ -187,13 +187,13 @@ long eiMsg::setBody(const char * msgId, const void * body, long len)
     setID(msgId);
     return len + MSGHDRLEN ;
 }
-void eiMsg::setLen(const long msgLen)
+void EiMsg::setLen(const long msgLen)
 {
     char buffer[25];
     sprintf(buffer, "%4d", msgLen);
     memcpy(&_msgBuffer[MSGLENOFFSET], buffer, MSGLENLEN);
 }
-void eiMsg::setID(const char * id)
+void EiMsg::setID(const char * id)
 {
     strncpy(&_msgBuffer[MSGIDOFFSET], id, min(MSGIDLEN,strlen(id)));
     strncpy(_id, id, MSGIDLEN);
@@ -233,12 +233,12 @@ void eiMsg::setID(const char * id)
 }
 
 */
-void eiMsg::dump()
+void EiMsg::dump()
 {
     printf("eiMsg ID %s, len %ld \n", msgID(), len());
 }
 
-MsgSeqNumAction eiCom::msgSeqAction(char * msgID)
+MsgSeqNumAction EiCom::msgSeqAction(char * msgID)
 {
 
     switch(atoi(msgID))
@@ -259,7 +259,7 @@ MsgSeqNumAction eiCom::msgSeqAction(char * msgID)
 }
 
 
-int eiCom::processMessages()
+int EiCom::processMessages()
 {
 
     char msgType;
@@ -430,11 +430,11 @@ printf("counter = %d", counter);
 
 
 
-int eiCom::init()
+int EiCom::init()
 {
     return io->open();
 }
-void eiCom::shutdown()
+void EiCom::shutdown()
 {
     io->close();
 }

@@ -8,12 +8,7 @@
 #include <memory.h>
 #include <stdio.h>
 
-typedef enum _msgID
-{
-	Subscribe,
-    Notify,
-    Cmd
-}MSGID;
+using namespace eiMsg;
 
 const int EI_USER = 1000;
 
@@ -65,7 +60,7 @@ const int MSGBODYTOLONG = -1;
 
 
 class MsgRecordMgr;
-class eiCom
+class EiCom
 {
     enum msgReadState
     {
@@ -80,7 +75,7 @@ class eiCom
 
 
     MsgRecordMgr * mgr;
-    comIO  *  io;
+    ComIO  *  io;
 
     int msgBodyLen;
 
@@ -88,10 +83,10 @@ class eiCom
     int seqID;
     int lastseqID;
     int msgIdx;
-    char msgID[MSGIDLEN];
-    char MSG[MAXMSGLEN];
+    char msgID[MSGIDLEN+1];
+    char MSG[MAXMSGLEN+1];
    static const int READBUFFER_SIZE  = 2048;
-    unsigned char readBuffer[READBUFFER_SIZE];
+    unsigned char readBuffer[READBUFFER_SIZE+1];
     static const int MAXSEQNUM = 10;
     static const int MINSEQNUM = 1;
     int counter ;
@@ -100,7 +95,7 @@ class eiCom
 public:
 
 
-    eiCom( comIO * io = 0)
+    EiCom( ComIO * io = 0)
     {
         this->io = io;
         msgState = mrs_readSTX;
@@ -109,11 +104,11 @@ public:
         msgID[MSGIDLEN] = 0;
         counter = 0;
     }
-  eiQueue msgQueue;
+  EiQueue msgQueue;
     int init();
     int processMessages();
-    void sendMsg(eiMsg &msg);
-    eiMsg readMsg();
+    void sendMsg(EiMsg &msg);
+    EiMsg readMsg();
     void shutdown();
    // int run();
 
@@ -136,7 +131,7 @@ class MsgRecordMgr
         msgRecord * next;
     };
  */
- msgRecord msgRecords[MSGRECORDSTACKSIZE];
+ MsgRecord msgRecords[MSGRECORDSTACKSIZE];
     int low=0;
     int high = 0;
     int lastAdded=0;
@@ -163,9 +158,9 @@ class MsgRecordMgr
         return 0;
 
     }
-    msgRecord * nextMessage()
+    MsgRecord * nextMessage()
     {
-
+        return 0;
     }
 };
 #endif

@@ -1,10 +1,10 @@
 #include "eimsg.h"
 #include <string.h>
 #include <math.h>
-
-
 #include "osheader.h"
 
+namespace eiMsg
+{
 
 MSGINFO messageInfo [] = {
     {mi_Logon, "Logon", "Log onto server.", msna_set},
@@ -26,7 +26,7 @@ MSGINFO messageInfo [] = {
 };
 
 
-int msgBody::strcpyn(char * dest, int destlen, char * source)
+int MsgBody::strcpyn(char * dest, int destlen, char * source)
 {
     int sourcelen = strlen(source);
     int lcopy = fmin(destlen, sourcelen);
@@ -35,7 +35,7 @@ int msgBody::strcpyn(char * dest, int destlen, char * source)
     return lcopy;
 }
 
-int msgBody::memcpyn(char *dest, int destlen, char * source, int sourcelen, bool addnullterminator)
+int MsgBody::memcpyn(char *dest, int destlen, char * source, int sourcelen, bool addnullterminator)
 {
     int lcopy = fmin(destlen, sourcelen) ;
     memcpy(dest, source, lcopy);
@@ -46,42 +46,56 @@ int msgBody::memcpyn(char *dest, int destlen, char * source, int sourcelen, bool
     return lcopy;
 }
 
-#include <stdio.h>
-int msgBody::serialize(unsigned char * msg)
+
+int MsgBody::serialize(unsigned char * msg)
 {
     msg[0] = tokenLen;
     memcpyn((char *)&msg[1], MAXTOKENLEN, (char *)token, tokenLen );
     return tokenLen + 1;
 }
-int msgBody::deserialize( unsigned char * msg)
+
+int MsgBody::deserialize( unsigned char * msg)
 {
     tokenLen =  msg[0];
     memcpyn((char *)token, MAXTOKENLEN, (char *)&msg[1], tokenLen,true);
     return tokenLen+1;
 }
 
+void MsgBody::setToken(unsigned char * token)
+{
+    tokenLen = strcpyn((char *)this->token, MAXTOKENLEN, (char *)token);
+}
+
+unsigned char * MsgBody::getToken()
+{
+    return token;
+}
 
 
+Logon::Logon()
+{
 
-logon::logon(){}
-logon::logon(char * name, char * pwd)
+}
+
+Logon::Logon(char * name, char * pwd)
 {
   nameLen = strcpyn(this->name, NAMELEN, name);
   pwdLen = strcpyn(this->pwd, PWDLEN, pwd);
 }
 
-int logon::serialize(unsigned char * msg)
+int Logon::serialize(unsigned char * msg)
 {
-  int bodyLen = msgBody::serialize(msg);
+  int bodyLen = MsgBody::serialize(msg);
   msg[bodyLen]=nameLen;
   memcpy(&msg[1+ bodyLen], name, nameLen);
   msg[nameLen + 1 + bodyLen] = pwdLen;
   memcpy(&msg[nameLen+2 + bodyLen], pwd, pwdLen);
   return nameLen + pwdLen + 2 + bodyLen;
 }
-int logon::deserialize( unsigned char * msg)
+
+int Logon::deserialize( unsigned char * msg)
 {
-    int bodyLen = msgBody::deserialize(msg);
+  int bodyLen = MsgBody::deserialize(msg);
   nameLen = msg[bodyLen];
   memcpyn(name, NAMELEN, (char *)&msg[1 + bodyLen], nameLen, true);
   pwdLen = msg[nameLen+1+ bodyLen];
@@ -91,31 +105,36 @@ int logon::deserialize( unsigned char * msg)
 
 
 
-int emptyMsgBody::serialize(unsigned char * msg)
+int EmptyMsgBody::serialize(unsigned char * msg)
 {
-  return  msgBody::serialize(msg);
-}
-int emptyMsgBody::deserialize( unsigned char * msg)
-{
-    return msgBody::deserialize(msg);
+  return  MsgBody::serialize(msg);
 }
 
-loopback::loopback(){}
-loopback::loopback(char * text)
+int EmptyMsgBody::deserialize( unsigned char * msg)
+{
+    return MsgBody::deserialize(msg);
+}
+
+Loopback::Loopback()
+{
+
+}
+
+Loopback::Loopback(char * text)
 {
   textLen = strcpyn(this->text, MAXTEXTLEN, text);
 }
 
-int loopback::serialize(unsigned char * msg)
+int Loopback::serialize(unsigned char * msg)
 {
-    int bodyLen = msgBody::serialize(msg);
+    int bodyLen = MsgBody::serialize(msg);
   msg[bodyLen] = textLen;
   memcpy(&msg[1+ bodyLen], text, textLen);
   return textLen+1+ bodyLen;
 }
-int loopback::deserialize( unsigned char * msg)
+int Loopback::deserialize( unsigned char * msg)
 {
-    int bodyLen = msgBody::deserialize(msg);
+    int bodyLen = MsgBody::deserialize(msg);
   textLen = msg[bodyLen];
   memcpyn(text, MAXTEXTLEN,(char *) &msg[1+ bodyLen], textLen, true);
   return textLen+1+ bodyLen;
@@ -123,12 +142,9 @@ int loopback::deserialize( unsigned char * msg)
 
 
 
-
-
-
-int pubsubBase::serialize(unsigned char * msg)
+int PubsubBase::serialize(unsigned char * msg)
 {
-      int bodyLen = msgBody::serialize(msg);
+    int bodyLen = MsgBody::serialize(msg);
     msg[bodyLen] = topicLen;
     memcpyn((char *)&msg[1 + bodyLen], MAXTOPICLEN, topic, topicLen );
     msg[topicLen + 1 + bodyLen] = idLen;
@@ -137,9 +153,10 @@ int pubsubBase::serialize(unsigned char * msg)
     memcpy(&msg[topicLen + 3 + idLen + bodyLen],  (char *)psmsg, psmsgLen);
     return topicLen + 3 + idLen + psmsgLen + bodyLen;
 }
-int pubsubBase::deserialize( unsigned char * msg)
+
+int PubsubBase::deserialize( unsigned char * msg)
 {
-    int bodyLen = msgBody::deserialize(msg);
+    int bodyLen = MsgBody::deserialize(msg);
     topicLen = msg[bodyLen];
     memcpyn(topic, MAXTOPICLEN, (char *)&msg[1+bodyLen], topicLen,true);
     idLen=msg[topicLen+1+bodyLen];
@@ -149,62 +166,52 @@ int pubsubBase::deserialize( unsigned char * msg)
     return topicLen+3+idLen+ psmsgLen+bodyLen;
 }
 
-#include <stdio.h>
 
-get::get()
+Get::Get()
 {
 
 }
 
-get::get( char * item)
+Get::Get( char * item)
 {
     itemLen = strcpyn(this->item, MAXITEMLEN, item );
 }
-int get::serialize(unsigned char * msg)
+int Get::serialize(unsigned char * msg)
 {
-  int bodyLen = msgBody::serialize(msg);
-  printf("len = %d ", bodyLen);
-
+  int bodyLen = MsgBody::serialize(msg);
   msg[bodyLen] = itemLen;
   memcpy(&msg[1 + bodyLen], item, itemLen);
   return itemLen + 1 + bodyLen;
 }
-int get::deserialize( unsigned char * msg)
+int Get::deserialize( unsigned char * msg)
 {
-    int bodyLen = msgBody::deserialize(msg);
-    printf("len =-=> %d ", bodyLen);
+    int bodyLen = MsgBody::deserialize(msg);
     itemLen = msg[bodyLen];
     memcpyn(item, MAXITEMLEN, (char *)&msg[1+ bodyLen], itemLen, true);
     return itemLen+1 + bodyLen;
 }
-set::set()
+Put::Put()
 {
 }
-set::set(char * item, char * data, int len) : get(item)
+Put::Put(char * item, char * data, int len) : Get(item)
 {
     infoLen = memcpyn(this->info, MAXDATALEN, data, len);
-printf("infolen=%d", infoLen);
 }
 
-int set::serialize(unsigned char * msg)
+int Put::serialize(unsigned char * msg)
 {
-    int len = get::serialize(msg);
-
-    msg[len+1] = infoLen;
-    memcpyn((char *)&msg[len+2], MAXDATALEN, info, infoLen);
-    return len +1 + infoLen;
-}
-int set::deserialize( unsigned char * msg)
-{
-
-    int len = get::deserialize(msg);
-    printf("len = %d ", len);
-    infoLen = msg[len+1];
-    printf("len = %d ", infoLen);
-
-    memcpyn(info, MAXDATALEN, (char *)&msg[len+2], infoLen);
-    printf("[[[%4s]]]", info);
+    int len = Get::serialize(msg);
+    msg[len] = infoLen;
+    memcpyn((char *)&msg[len+1], MAXDATALEN, info, infoLen);
     return len +1 + infoLen;
 }
 
+int Put::deserialize( unsigned char * msg)
+{
+    int len = Get::deserialize(msg);
+    infoLen = msg[len];
+    memcpyn(info, MAXDATALEN, (char *)&msg[len+1], infoLen);
+    return len +1 + infoLen;
+}
 
+}// eiMsg

@@ -1,6 +1,6 @@
 #include "comIO.h"
 
-comIO::comIO()
+ComIO::ComIO()
 {
 
 }

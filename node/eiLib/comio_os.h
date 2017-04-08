@@ -1,10 +1,10 @@
 #ifndef COMIO_OS_H
 #define COMIO_OH_H
 
-class comIO_OS
+class ComIO_OS
 {
 public:
-    comIO_OS();
+    ComIO_OS();
 };
 
 #endif // COMIO_OS_H

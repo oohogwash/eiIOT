@@ -19,12 +19,12 @@ typedef struct _ioPoint
 
 
 
-class eiCfg
+class EiCfg
 {
   IOPOINT points[100];
   
 public:
-	eiCfg(){}
+    EiCfg(){}
 	void Init(){}
 	void Run(){}
 };

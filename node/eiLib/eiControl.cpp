@@ -1,11 +1,11 @@
 #include "eiControl.h"
 
-void eiControl::Init()
+void EiControl::Init()
 {
 
 }
 
-void eiControl::Run() //only run as server
+void EiControl::Run() //only run as server
 {
     //char * msg = ReadMsg();
 
@@ -21,7 +21,7 @@ void eiControl::Run() //only run as server
 }
 
 
-eiControl::eiControl()
+EiControl::EiControl()
 {
 
 }

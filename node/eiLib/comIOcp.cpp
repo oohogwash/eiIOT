@@ -3,7 +3,7 @@
 #include "eiCom.h"
 #include "osheader.h"
 
-comIOCP::comIOCP()
+ComIOCP::ComIOCP()
 {
     comReadBufferLen = 2048;
     comport = 2;
@@ -11,27 +11,27 @@ comIOCP::comIOCP()
     strcpy(mode, "8N1");
 
 }
-int comIOCP::open()
+int ComIOCP::open()
 {
     return RS232_OpenComport(comport, baudrate, mode);
 }
 
-void comIOCP::close()
+void ComIOCP::close()
 {
     RS232_CloseComport(comport);
 }
 
-int comIOCP::read(unsigned char * buffer, int size)
+int ComIOCP::read(unsigned char * buffer, int size)
 {
     return RS232_PollComport(comport, buffer, size);
 }
 
 
-int comIOCP::write(unsigned char * msgBuffer, int len)
+int ComIOCP::write(unsigned char * msgBuffer, int len)
 {
     return RS232_SendBuf(comport, msgBuffer, len);
 }
-void comIOCP::sleep(int ms)
+void ComIOCP::sleep(int ms)
 {
 #ifdef _WIN32
     Sleep(ms);

@@ -3,18 +3,18 @@
 
 #include "eiLib/msgrecord.h"
 
-class eiQueue
+class EiQueue
 {
     static const int MAX_SIZE = 105;
 private:
-   msgRecord data[MAX_SIZE];
+   MsgRecord data[MAX_SIZE];
    int front;
    int rear;
 public:
-   eiQueue();
+   EiQueue();
    void Enqueue(const char * id, const char * msg, int len);
-   const msgRecord & Dequeue();
-   const msgRecord & Front();
+   const MsgRecord & Dequeue();
+   const MsgRecord & Front();
    int Size();
    bool isEmpty();
 };

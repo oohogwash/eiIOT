@@ -14,7 +14,14 @@ SOURCES += main.cpp \
     eiLib/eiLib.cpp \
     eiLib/eimsg.cpp \
     eiLib/eiqueue.cpp \
-    eiLib/rs232.cpp
+    eiLib/rs232.cpp \
+    eimodule/commodule.cpp \
+    eimodule/displaymodule.cpp \
+    eimodule/iomodule.cpp \
+    eimodule/logicmodule.cpp \
+    eimodule/module.cpp \
+    eimodule/modulemanager.cpp \
+    eimodule/modulemsg.cpp
 
 HEADERS += \
     eiLib/comIO.h \
@@ -31,4 +38,11 @@ HEADERS += \
     eiLib/rs232.h \
     eiLib/eiCom.cpp.autosave \
     eiLib/eiCom.cpp.autosave.J11824 \
-    eiLib/osheader.h
+    eiLib/osheader.h \
+    eimodule/commodule.h \
+    eimodule/displaymodule.h \
+    eimodule/iomodule.h \
+    eimodule/logicmodule.h \
+    eimodule/module.h \
+    eimodule/modulemanager.h \
+    eimodule/modulemsg.h

@@ -2,10 +2,10 @@
 #define EICONTROL_H
 //#include "eiCom.h"
 
-class eiControl //: public eiCom
+class EiControl //: public eiCom
 {
 public:
-    eiControl();
+    EiControl();
 
     void Init();
     void Run();

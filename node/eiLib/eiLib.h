@@ -32,8 +32,8 @@ using namespace std;
 
 class Einfo
 {
-	eiCom com;
-    eiDisplay display;
+	EiCom com;
+    EiDisplay display;
 public:
 	Einfo(){}
         void Init();

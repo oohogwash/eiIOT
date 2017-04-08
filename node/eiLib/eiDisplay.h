@@ -1,10 +1,10 @@
 #ifndef EIDISPLAY_H_
 #define EIDISPLAY_H_
 
-class eiDisplay
+class EiDisplay
 {
 public:
-	eiDisplay(){}
+    EiDisplay(){}
 	void Init(){}
 	void Run(){}
 };

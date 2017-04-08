@@ -3,8 +3,9 @@
 
 #include <memory.h>
 #include "eimsg.h"
+using namespace eiMsg;
 
-class msgRecord
+class MsgRecord
 {
 public:
     char msgid[MSGIDLEN+1];

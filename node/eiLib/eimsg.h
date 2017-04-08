@@ -1,7 +1,8 @@
 #ifndef EIMSG_H
 #define EIMSG_H
 
-
+namespace eiMsg
+{
 
 // msg and header item sizes
 static const int MAXMSGLEN = 512;
@@ -57,13 +58,13 @@ typedef union _val {
     long lval;
 }VAL;
 
-class eiMsg
+class EiMsg
 {
     char _msgBuffer[MAXMSGLEN +1];
     long _len;
     char _id[MSGIDLEN+1];
 public:
-    eiMsg();
+    EiMsg();
 
     char * body();
     char *  msgID();
@@ -82,7 +83,7 @@ public:
 
 
 
-class msgBody
+class MsgBody
 {
    public:
   static int memcpyn(char *dest, int destlen, char * source, int sourcelen, bool addNullTerminator=false);
@@ -93,18 +94,20 @@ class msgBody
   unsigned char tokenLen;
   virtual int serialize(unsigned char * msg);
   virtual int deserialize( unsigned char * msg);
-  msgBody(): tokenLen(0){}
+  MsgBody(): tokenLen(0){}
+  void setToken(unsigned char * token);
+  unsigned char * getToken();
 
 };
 
 
 
 
-class emptyMsgBody : public msgBody
+class EmptyMsgBody : public MsgBody
 {
 
 public:
-  emptyMsgBody(){}
+  EmptyMsgBody(){}
   int serialize(unsigned char * msg);
   int deserialize( unsigned char * msg);
 
@@ -149,14 +152,14 @@ typedef struct msginfo{
 
 
 
-class logon : public msgBody
+class Logon : public MsgBody
 {
   const static int NAMELEN = 40;
   const static int PWDLEN = 40;
 public:
   char mid(){return mi_Logon;}
-  logon();
-  logon(char * name, char * pwd);
+  Logon();
+  Logon(char * name, char * pwd);
 
   char name[NAMELEN+1];
   char nameLen;
@@ -168,32 +171,32 @@ public:
 };
 
 
-class logonResponse : public emptyMsgBody
+class LogonResponse : public EmptyMsgBody
 {
 public:
      char mid(){return mi_LogonResponse;}
-    logonResponse(){}
+    LogonResponse(){}
 };
 
 
-class logOff : public emptyMsgBody
+class LogOff : public EmptyMsgBody
 {
 public:
      char mid(){return mi_Logoff;}
-    logOff(){}
+    LogOff(){}
 };
 
 
 
-class ping : public emptyMsgBody
+class Ping : public EmptyMsgBody
 {
 public:
   char mid(){return mi_Ping;}
-  ping(){}
+  Ping(){}
 };
 
 
-class loopback : public msgBody
+class Loopback : public MsgBody
 {
     static const int MAXTEXTLEN = 256;
     char textLen;
@@ -201,14 +204,14 @@ class loopback : public msgBody
 public:
   char text[MAXTEXTLEN+1];
   char mid(){return mi_Loopback;}
-  loopback();
-  loopback(char * text);
+  Loopback();
+  Loopback(char * text);
   int serialize(unsigned char * msg);
   int deserialize( unsigned char * msg);
 };
 
 
-class pubsubBase : public msgBody
+class PubsubBase : public MsgBody
 {
 
 public:
@@ -223,8 +226,8 @@ public:
  char psmsg[MAXPSMSGLEN+1];
  int psmsgLen;
 
-  pubsubBase(){}
-  pubsubBase( char * topic, char * id, char * msg, int msglen )
+  PubsubBase(){}
+  PubsubBase( char * topic, char * id, char * msg, int msglen )
   {
       topicLen = strcpyn(this->topic, MAXTOPICLEN, topic);
       idLen = strcpyn(this->id, MAXIDLEN, id);
@@ -236,68 +239,69 @@ public:
 
 
 
-class publish : public pubsubBase
+class Publish : public PubsubBase
 {
 
 public:
   char mid(){return mi_Publish;}
-  publish(){}
-  publish(char * topic, char * id, char * msg, int len):
-      pubsubBase(  topic, id, msg, len){}
+  Publish(){}
+  Publish(char * topic, char * id, char * msg, int len):
+      PubsubBase(  topic, id, msg, len){}
 };
 
-class subscribe : public pubsubBase
+class Subscribe : public PubsubBase
 {
 
 public:
   char mid(){return mi_Subscribe;}
-  subscribe(){}
-  subscribe(char * topic, char * id, char * msg, int len) :
-      pubsubBase(  topic, id, msg, len){}
+  Subscribe(){}
+  Subscribe(char * topic, char * id, char * msg, int len) :
+      PubsubBase(  topic, id, msg, len){}
 };
-class notify : public pubsubBase
+
+class Notify : public PubsubBase
 {
 
 public:
   char mid(){return mi_Notify;}
-  notify(){}
-  notify(char * topic, char * eventId, char * event, int eventLen):
-    pubsubBase(  topic, eventId, event, eventLen){}
+  Notify(){}
+  Notify(char * topic, char * eventId, char * event, int eventLen):
+    PubsubBase(  topic, eventId, event, eventLen){}
 };
 
-class command : public msgBody
+class Command : public MsgBody
 {
 
 public:
   char mid(){return mi_Command;}
-  command( char * id, char * cmd, int len);
+  Command( char * id, char * cmd, int len);
 };
 
-class commandResponse : public msgBody
+class CommandResponse : public MsgBody
 {
 
 public:
     char mid(){return mi_CommandResponse;}
-    commandResponse();
+    CommandResponse();
 };
 
 
-class request : public msgBody
+class Request : public MsgBody
 {
 
 public:
   char mid(){return mi_Request;}
-  request( char * id, char * cmd, int len);
+  Request( char * id, char * cmd, int len);
 };
 
-class response : public msgBody
+class Response : public MsgBody
 {
 public:
     char mid(){return mi_Response;}
-    response();
+    Response();
 };
 
-class get : public msgBody
+class Get : public MsgBody
 {
     static const int MAXITEMLEN = 128;
 
@@ -306,13 +310,13 @@ public:
     char item[MAXITEMLEN+1];
     char itemLen;
     char mid(){return mi_Get;}
-  get();
-  get( char * item);
+  Get();
+  Get( char * item);
   int serialize(unsigned char * msg);
   int deserialize( unsigned char * msg);
 };
 
-class set : public get
+class Put : public Get
 {
     static const int MAXDATALEN = 1024;
 
@@ -320,14 +324,23 @@ public:
     char info[MAXDATALEN+1];
     int infoLen;
     char mid(){return mi_Set;}
-    set();
-    set(char * item, char * info, int len);
+    Put();
+    Put(char * item, char * info, int len);
     int serialize(unsigned char * msg);
     int deserialize( unsigned char * msg);
 };
 
+class Post : public Put
+{
 
+};
 
+class Delete : public Get
+{
+
+};
+
+}; //eiMsg
 
 
 #endif // EIMSG_H

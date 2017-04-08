@@ -2,13 +2,13 @@
 #define COMIOCP_H
 #include "comIO.h"
 
-class comIOCP : public comIO
+class ComIOCP : public ComIO
 {
     int comport;
     int baudrate;
     char mode[5];
 public:
-    comIOCP();
+    ComIOCP();
     int open();
     void close();
     int read(unsigned char * buffer, int size);
