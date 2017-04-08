@@ -3,6 +3,9 @@
 
 #include "module.h"
 
+namespace eiModule
+{
+
 class LogicModule : public Module
 {
     enum LMTYPE{
@@ -17,5 +20,7 @@ public:
     void dump();
     const char * moduleTypeText(){return "logic";}
 };
+
+}// eiMsgModule
 
 #endif // LOGICMODULE_H

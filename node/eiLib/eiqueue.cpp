@@ -1,6 +1,11 @@
-#include "eiqueue.h"
 #include <stdlib.h>
+
+#include "eiqueue.h"
+
 #include "eiLib/eiCom.h"
+
+namespace eiMsg
+{
 
 EiQueue::EiQueue()
 {
@@ -21,7 +26,7 @@ void EiQueue::Enqueue(const char * id, const char * msg, int len)
    memcpy(data[rear].msgbuffer, msg, len);
    data[rear].msgbuffer[len]=0;
 
-   printf("---->%d-[%s]\n", len, msg);
+   //printf("---->%d-[%s]\n", len, msg);
 
    memcpy(data[rear].msgid, id, MSGIDLEN +1);
    data[rear].msgid[MSGIDLEN]=0;
@@ -73,4 +78,4 @@ bool EiQueue::isEmpty()
 }
 
 
-
+} // _eiMsg

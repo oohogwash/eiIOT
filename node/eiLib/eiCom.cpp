@@ -1,4 +1,3 @@
-#include "eiCom.h"
 #ifndef ARDUINO
 #include <memory.h>
 #include <iostream>
@@ -7,8 +6,15 @@
 #include "Arduino.h"
 #endif
 
+
+#include "eiCom.h"
+
+
 #include "comIOcp.h"
 #include "rs232.h"
+
+namespace eiMsg
+{
 
 
 #ifndef min
@@ -17,7 +23,6 @@
 
 
 
-using namespace  std;
 
 char msgtest[10230]; // for testing
 void EiCom::sendMsg(EiMsg & msg)
@@ -438,3 +443,4 @@ void EiCom::shutdown()
 {
     io->close();
 }
+} // eiMsg

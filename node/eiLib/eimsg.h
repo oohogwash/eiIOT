@@ -343,4 +343,4 @@ class Delete : public Get
 }; //eiMsg
 
 
-#endif // EIMSG_H
+#endif // EIMsg_H

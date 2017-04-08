@@ -1,4 +1,6 @@
 #include "eiLib.h"
+namespace eiMsg {
+
 
 
 void Einfo::Init()
@@ -13,3 +15,5 @@ void Einfo::Run()
     //com.run();
 
 }
+
+} // eiMsg

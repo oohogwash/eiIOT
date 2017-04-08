@@ -1,9 +1,16 @@
 #ifndef MSGRECORD_H
 #define MSGRECORD_H
-
 #include <memory.h>
+
 #include "eimsg.h"
-using namespace eiMsg;
+
+//#include <memory.h>
+
+namespace eiMsg
+{
+
+//using namespace ei;
+
 
 class MsgRecord
 {
@@ -25,6 +32,8 @@ public:
         return msgbuffer;
     }
 };
+
+} // eiMsg
 
 
 

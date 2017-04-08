@@ -1,6 +1,8 @@
 #ifndef EICONTROL_H
 #define EICONTROL_H
 //#include "eiCom.h"
+namespace eiMsg
+{
 
 class EiControl //: public eiCom
 {
@@ -10,5 +12,5 @@ public:
     void Init();
     void Run();
 };
-
-#endif // EICONTROL_H
+} // eiMsg
+#endif // EIMsgCONTROL_H

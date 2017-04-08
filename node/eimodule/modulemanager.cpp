@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <iostream>
-
+namespace eiModule
+{
 
 int compModuleIndexEntries(const void * a, const void * b)
 {
@@ -101,3 +102,4 @@ void ModuleManager::init()
 {
 
 }
+} // eiMsgModule

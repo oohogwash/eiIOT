@@ -1,11 +1,13 @@
 #ifndef RS232_H
 #define RS232_H
 
+namespace eiMsg
+{
 
-class rs232
+class Rs232
 {
 public:
-    rs232();
+    Rs232();
 };
 
 /*
@@ -77,7 +79,7 @@ int RS232_GetPortnr(const char *);
 
 
 
-
+} // eiMsg
 
 
 #endif // RS232_H

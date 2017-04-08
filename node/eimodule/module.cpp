@@ -1,5 +1,6 @@
 #include "module.h"
-
+namespace eiModule
+{
 Module::Module()
 {
 
@@ -10,3 +11,4 @@ Module::Module()
  {
      printf("Module  type  %s  id = %s\n", moduleTypeText(), id);
  }
+} // eiMsgModule

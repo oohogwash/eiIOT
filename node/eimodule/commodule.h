@@ -3,6 +3,9 @@
 
 #include "module.h"
 
+namespace eiModule
+{
+
 class ComModule: public Module
 {
     enum transportProtocolType {
@@ -39,5 +42,7 @@ public:
     void dump() { Module::dump();}
     const char * moduleTypeText(){return "com";}
 };
+
+} // eiMsgModule
 
 #endif // COMMODULE_H

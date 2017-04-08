@@ -1,6 +1,10 @@
 #ifndef MODULEMANAGER_H
 #define MODULEMANAGER_H
 
+
+namespace eiModule
+{
+
 class Module;
 
 typedef struct _moduleIndexEntry
@@ -47,5 +51,7 @@ public:
     void init();
     void dump();
 };
+
+} // eiMsgModule
 
 #endif // MODULEMANAGER_H

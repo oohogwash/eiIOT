@@ -2,6 +2,8 @@
 #ifndef EICFG_H_
 #define EICFG_H_
 
+namespace eiMsg
+{
 
 typedef enum _iotype
 {
@@ -29,5 +31,5 @@ public:
 	void Run(){}
 };
 
-
+} // eiMsg
 #endif

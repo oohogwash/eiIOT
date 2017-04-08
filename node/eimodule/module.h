@@ -2,6 +2,9 @@
 #define MODULE_H
 #include <stdio.h>
 
+namespace eiModule
+{
+
 class Module
 {
 
@@ -22,6 +25,6 @@ public:
 
 };
 
-
+} // eiMsgModule
 
 #endif // MODULE_H

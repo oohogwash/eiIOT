@@ -1,7 +1,11 @@
-#include "rs232.h"
 #include "osheader.h"
+#include "rs232.h"
 
-rs232::rs232()
+
+namespace eiMsg
+{
+
+Rs232::Rs232()
 {
 
 }
@@ -819,3 +823,6 @@ int RS232_GetPortnr(const char *devname)
 
   return -1;  /* device not found */
 }
+
+
+} // eiMsg

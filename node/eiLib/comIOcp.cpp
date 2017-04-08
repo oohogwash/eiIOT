@@ -1,7 +1,12 @@
+#include "osheader.h"
+
 #include "comIOcp.h"
 #include "rs232.h"
 #include "eiCom.h"
-#include "osheader.h"
+
+
+namespace eiMsg
+{
 
 ComIOCP::ComIOCP()
 {
@@ -40,5 +45,7 @@ void ComIOCP::sleep(int ms)
 #endif
 
 }
+
+} // eiMsg
 
 

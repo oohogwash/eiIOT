@@ -1,5 +1,8 @@
 #include "eiControl.h"
 
+namespace eiMsg
+{
+
 void EiControl::Init()
 {
 
@@ -25,3 +28,4 @@ EiControl::EiControl()
 {
 
 }
+} // eiMsg

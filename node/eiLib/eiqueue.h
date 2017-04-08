@@ -3,6 +3,9 @@
 
 #include "eiLib/msgrecord.h"
 
+namespace eiMsg
+{
+
 class EiQueue
 {
     static const int MAX_SIZE = 105;
@@ -19,5 +22,5 @@ public:
    bool isEmpty();
 };
 
-
-#endif // EIQUEUE_H
+} // eiMsg
+#endif // EIMsgQUEUE_H

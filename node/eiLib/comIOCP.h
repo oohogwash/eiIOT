@@ -1,6 +1,8 @@
 #ifndef COMIOCP_H
 #define COMIOCP_H
 #include "comIO.h"
+namespace eiMsg
+{
 
 class ComIOCP : public ComIO
 {
@@ -16,4 +18,6 @@ public:
     static void sleep(int ms);
 };
 
+
+} // eiMsg
 #endif // COMIOCP_H

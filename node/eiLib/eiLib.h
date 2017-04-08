@@ -8,6 +8,15 @@
 //#include "WProgram.h"
 //#endif
 #endif
+#ifndef eiArduino_h
+#define eiArduino_h
+
+#ifndef ARDUINO
+#include<iostream>
+using namespace std;
+#include <stdio.h>
+#endif
+
 
 #include "eiCfg.h"
 #include "eiCom.h"
@@ -19,15 +28,10 @@
 
 //#include <string>
 
-#ifndef eiArduino_h
-#define eiArduino_h
 
-#ifndef ARDUINO
-#include<iostream>
-using namespace std;
-#include <stdio.h>
-#endif
 
+namespace eiMsg
+{
 
 
 class Einfo
@@ -41,5 +45,8 @@ public:
         void Dump(){ fprintf(stdout, "Einfo dump");}// cout <<"Einfo dump" <<endl;}
 };
 
+} // eiMsg
+
 #endif
+
 #endif // _EILIB_H

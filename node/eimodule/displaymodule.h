@@ -3,6 +3,9 @@
 
 #include "module.h"
 
+namespace eiModule
+{
+
 class DisplayModule : public Module
 {
 
@@ -11,5 +14,7 @@ public:
     void dump() { Module::dump();}
     const char * moduleTypeText(){return "Display";}
 };
+
+}  //eiModule
 
 #endif // DISPLAYMODULE_H

@@ -3,6 +3,9 @@
 
 #include "module.h"
 
+namespace eiModule
+{
+
 class IoModule: public Module
 {
     //static char ioTypes[] = {"digital", "analog"};
@@ -30,5 +33,7 @@ public:
 
 
 };
+
+} // eiMsgModule
 
 #endif // IOMODULE_H

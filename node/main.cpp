@@ -4,10 +4,12 @@ using namespace std;
 #include "eiLib/eiCom.h"
 #include "eiLib/eimsg.h"
 
+using namespace eiMsg;
 
 int main(int argc, char *argv[])
 {
-    Subscribe n; //(char *)"topic", (char *)"==ID==", (char *)"event",5);
+
+    Subscribe n((char *)"topic", (char *)"==ID==", (char *)"event",5);
 
     ComIOCP  io;
     EiCom com(&io);
@@ -99,6 +101,8 @@ int main(int argc, char *argv[])
 
 
     cout << "end of program" << endl;
+
+
   return 0;
 
 }
