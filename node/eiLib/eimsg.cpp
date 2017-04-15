@@ -2,6 +2,9 @@
 #include <string.h>
 #include <math.h>
 #include "osheader.h"
+#include "msgdef.h"
+
+using namespace eiCom;
 
 namespace eiMsg
 {
@@ -47,14 +50,14 @@ int MsgBody::memcpyn(char *dest, int destlen, char * source, int sourcelen, bool
 }
 
 
-int MsgBody::serialize(unsigned char * msg)
+int MsgBody::serializeInt(unsigned char * msg)
 {
     msg[0] = tokenLen;
     memcpyn((char *)&msg[1], MAXTOKENLEN, (char *)token, tokenLen );
     return tokenLen + 1;
 }
 
-int MsgBody::deserialize( unsigned char * msg)
+int MsgBody::deserializeInt( unsigned char * msg)
 {
     tokenLen =  msg[0];
     memcpyn((char *)token, MAXTOKENLEN, (char *)&msg[1], tokenLen,true);
@@ -65,6 +68,25 @@ void MsgBody::setToken(unsigned char * token)
 {
     tokenLen = strcpyn((char *)this->token, MAXTOKENLEN, (char *)token);
 }
+
+
+unsigned char * MsgBody::serialize(unsigned char * msg)
+{
+    *msg++ = tokenLen;
+    memcpyn((char *)msg, MAXTOKENLEN, (char *)token, tokenLen );
+    return msg + tokenLen ;
+}
+
+unsigned char * MsgBody::deserialize( unsigned char * msg)
+{
+    tokenLen =  *msg++;
+     memcpyn((char *)token, MAXTOKENLEN, (char *)msg, tokenLen,true);
+    return msg + tokenLen;
+}
+
+
+
+
 
 unsigned char * MsgBody::getToken()
 {
@@ -83,9 +105,9 @@ Logon::Logon(char * name, char * pwd)
   pwdLen = strcpyn(this->pwd, PWDLEN, pwd);
 }
 
-int Logon::serialize(unsigned char * msg)
+int Logon::serializeInt(unsigned char * msg)
 {
-  int bodyLen = MsgBody::serialize(msg);
+  int bodyLen = MsgBody::serializeInt(msg);
   msg[bodyLen]=nameLen;
   memcpy(&msg[1+ bodyLen], name, nameLen);
   msg[nameLen + 1 + bodyLen] = pwdLen;
@@ -93,26 +115,40 @@ int Logon::serialize(unsigned char * msg)
   return nameLen + pwdLen + 2 + bodyLen;
 }
 
-int Logon::deserialize( unsigned char * msg)
+int Logon::deserializeInt( unsigned char * msg)
 {
-  int bodyLen = MsgBody::deserialize(msg);
+  int bodyLen = MsgBody::deserializeInt(msg);
   nameLen = msg[bodyLen];
   memcpyn(name, NAMELEN, (char *)&msg[1 + bodyLen], nameLen, true);
   pwdLen = msg[nameLen+1+ bodyLen];
   memcpyn(pwd, PWDLEN, (char *)&msg[nameLen+2+bodyLen], pwdLen, true);
   return nameLen+2+pwdLen + bodyLen;
 }
-
-
-
-int EmptyMsgBody::serialize(unsigned char * msg)
+unsigned char * Logon::serialize(unsigned char * msg)
 {
-  return  MsgBody::serialize(msg);
+  msg = MsgBody::serialize(msg);
+  msg = serSmallCharArr(msg, name,nameLen);
+  msg = serSmallCharArr(msg, pwd, pwdLen); // encrypt this later
+  return msg;
 }
 
-int EmptyMsgBody::deserialize( unsigned char * msg)
+unsigned char * Logon::deserialize( unsigned char * msg)
 {
-    return MsgBody::deserialize(msg);
+  msg = MsgBody::deserialize(msg);
+  msg = deserSmallString(msg, name, &nameLen);
+  msg = deserSmallString(msg, pwd, &pwdLen);
+  return msg;
+}
+
+
+int EmptyMsgBody::serializeInt(unsigned char * msg)
+{
+  return  MsgBody::serializeInt(msg);
+}
+
+int EmptyMsgBody::deserializeInt( unsigned char * msg)
+{
+    return MsgBody::deserializeInt(msg);
 }
 
 Loopback::Loopback()
@@ -125,26 +161,37 @@ Loopback::Loopback(char * text)
   textLen = strcpyn(this->text, MAXTEXTLEN, text);
 }
 
-int Loopback::serialize(unsigned char * msg)
+int Loopback::serializeInt(unsigned char * msg)
 {
-    int bodyLen = MsgBody::serialize(msg);
+    int bodyLen = MsgBody::serializeInt(msg);
   msg[bodyLen] = textLen;
   memcpy(&msg[1+ bodyLen], text, textLen);
   return textLen+1+ bodyLen;
 }
-int Loopback::deserialize( unsigned char * msg)
+int Loopback::deserializeInt( unsigned char * msg)
 {
-    int bodyLen = MsgBody::deserialize(msg);
+    int bodyLen = MsgBody::deserializeInt(msg);
   textLen = msg[bodyLen];
   memcpyn(text, MAXTEXTLEN,(char *) &msg[1+ bodyLen], textLen, true);
   return textLen+1+ bodyLen;
 }
 
-
-
-int PubsubBase::serialize(unsigned char * msg)
+unsigned char * Loopback::serialize(unsigned char * msg)
 {
-    int bodyLen = MsgBody::serialize(msg);
+  msg = MsgBody::serialize(msg);
+  serSmallString(msg, text);
+  return msg;
+}
+unsigned char * Loopback::deserialize( unsigned char * msg)
+{
+  msg = MsgBody::deserialize(msg);
+  deserSmallString(msg, text, &textLen);
+  return msg;
+}
+
+int PubsubBase::serializeInt(unsigned char * msg)
+{
+    int bodyLen = MsgBody::serializeInt(msg);
     msg[bodyLen] = topicLen;
     memcpyn((char *)&msg[1 + bodyLen], MAXTOPICLEN, topic, topicLen );
     msg[topicLen + 1 + bodyLen] = idLen;
@@ -154,9 +201,9 @@ int PubsubBase::serialize(unsigned char * msg)
     return topicLen + 3 + idLen + psmsgLen + bodyLen;
 }
 
-int PubsubBase::deserialize( unsigned char * msg)
+int PubsubBase::deserializeInt( unsigned char * msg)
 {
-    int bodyLen = MsgBody::deserialize(msg);
+    int bodyLen = MsgBody::deserializeInt(msg);
     topicLen = msg[bodyLen];
     memcpyn(topic, MAXTOPICLEN, (char *)&msg[1+bodyLen], topicLen,true);
     idLen=msg[topicLen+1+bodyLen];
@@ -165,6 +212,25 @@ int PubsubBase::deserialize( unsigned char * msg)
     memcpyn((char *)psmsg, MAXPSMSGLEN, (char *)&msg[topicLen + 3 +idLen+bodyLen], psmsgLen);
     return topicLen+3+idLen+ psmsgLen+bodyLen;
 }
+
+unsigned char *  PubsubBase::serialize(unsigned char * msg)
+{
+    msg = MsgBody::serialize(msg);
+    msg = serString(msg,topic);
+    msg = serSmallString(msg, id);
+    msg = serCharArr(msg, psmsg, psmsgLen);
+    return msg;
+}
+
+unsigned char *  PubsubBase::deserialize( unsigned char * msg)
+{
+    msg = MsgBody::deserialize(msg);
+    msg = deserString(msg,topic);
+    msg = deserSmallString(msg, id);
+    msg = deserCharArr(msg, psmsg, &psmsgLen);
+    return msg;
+}
+
 
 
 Get::Get()
@@ -176,20 +242,35 @@ Get::Get( char * item)
 {
     itemLen = strcpyn(this->item, MAXITEMLEN, item );
 }
-int Get::serialize(unsigned char * msg)
+int Get::serializeInt(unsigned char * msg)
 {
-  int bodyLen = MsgBody::serialize(msg);
+  int bodyLen = MsgBody::serializeInt(msg);
   msg[bodyLen] = itemLen;
   memcpy(&msg[1 + bodyLen], item, itemLen);
   return itemLen + 1 + bodyLen;
 }
-int Get::deserialize( unsigned char * msg)
+int Get::deserializeInt( unsigned char * msg)
 {
-    int bodyLen = MsgBody::deserialize(msg);
+    int bodyLen = MsgBody::deserializeInt(msg);
     itemLen = msg[bodyLen];
     memcpyn(item, MAXITEMLEN, (char *)&msg[1+ bodyLen], itemLen, true);
     return itemLen+1 + bodyLen;
 }
+
+unsigned char * Get::serialize(unsigned char * msg)
+{
+  msg = MsgBody::serialize(msg);
+  serCharArr(msg, item, itemLen);
+  return msg;
+}
+unsigned char * Get::deserialize( unsigned char * msg)
+{
+    msg = MsgBody::deserialize(msg);
+    deserCharArr(msg, item, &itemLen);
+    return msg;
+}
+
+
 Put::Put()
 {
 }
@@ -198,20 +279,85 @@ Put::Put(char * item, char * data, int len) : Get(item)
     infoLen = memcpyn(this->info, MAXDATALEN, data, len);
 }
 
-int Put::serialize(unsigned char * msg)
+int Put::serializeInt(unsigned char * msg)
 {
-    int len = Get::serialize(msg);
+    int len = Get::serializeInt(msg);
     msg[len] = infoLen;
     memcpyn((char *)&msg[len+1], MAXDATALEN, info, infoLen);
     return len +1 + infoLen;
 }
 
-int Put::deserialize( unsigned char * msg)
+int Put::deserializeInt( unsigned char * msg)
 {
-    int len = Get::deserialize(msg);
+    int len = Get::deserializeInt(msg);
     infoLen = msg[len];
     memcpyn(info, MAXDATALEN, (char *)&msg[len+1], infoLen);
     return len +1 + infoLen;
 }
+unsigned char * Put::serialize(unsigned char * msg)
+{
+    msg = Get::serialize(msg);
+    msg = serCharArr(msg, info, infoLen);
+    return msg;
+}
+
+unsigned char * Put::deserialize( unsigned char * msg)
+{
+    msg = Get::deserialize(msg);
+    msg = deserCharArr(msg, info, &infoLen);
+    return msg;
+}
+
+
+Rest::Rest()
+{
+
+}
+
+Rest::Rest(REST_VERB verb, char * item, char * collection, int collectionLen)
+{
+
+}
+
+void Rest::Get(char * item)
+{
+
+}
+
+void Rest::Delete(char * item)
+{
+
+}
+
+int Rest::Put(char * item, char * collection, int collectionLen)
+{
+    return 0;
+}
+
+int Rest::Post(char * item, char * collection, int collectionLen)
+{
+    return 0;
+}
+
+int Rest::serializeInt(unsigned char * msg)
+{
+    return 0;
+}
+
+int Rest::deserializeInt( unsigned char * msg)
+{
+    return 0;
+}
+
+unsigned char * Rest::serialize(unsigned char * msg)
+{
+    return msg;
+}
+
+unsigned char * Rest::deserialize( unsigned char * msg)
+{
+    return msg;
+}
+
 
 }// eiMsg

@@ -21,7 +21,8 @@ SOURCES += main.cpp \
     eimodule/logicmodule.cpp \
     eimodule/module.cpp \
     eimodule/modulemanager.cpp \
-    eimodule/modulemsg.cpp
+    eimodule/modulemsg.cpp \
+    eiLib/msgdef.cpp
 
 HEADERS += \
     eiLib/comIO.h \
@@ -45,4 +46,5 @@ HEADERS += \
     eimodule/logicmodule.h \
     eimodule/module.h \
     eimodule/modulemanager.h \
-    eimodule/modulemsg.h
+    eimodule/modulemsg.h \
+    eiLib/msgdef.h

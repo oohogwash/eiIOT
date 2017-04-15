@@ -1,18 +1,22 @@
 #ifndef MODULEMSG_H
 #define MODULEMSG_H
 
+#include "eiLib/eimsg.h"
+#include "eimodule/module.h"
+#
+
 namespace eiModule
 {
 
-class Modulemsg
+class ModuleMsg : public eiMsg::Rest
 {
 public:
-    Modulemsg();
+    ModuleMsg();
+    ModuleMsg(eiMsg::REST_VERB verb, Module * modules [], int moduleLen);
 };
 
-//class msgAddModule : public re
 
-} // eiMsgModule
+}
 
 
 #endif // MODULEMSG_H

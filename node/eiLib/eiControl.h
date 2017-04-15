@@ -1,10 +1,10 @@
 #ifndef EICONTROL_H
 #define EICONTROL_H
-//#include "eiCom.h"
+#include "eiCom.h"
 namespace eiMsg
 {
 
-class EiControl //: public eiCom
+class EiControl : public EiCom
 {
 public:
     EiControl();

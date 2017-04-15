@@ -3,8 +3,10 @@ using namespace std;
 #include "eiLib/comIOCP.h"
 #include "eiLib/eiCom.h"
 #include "eiLib/eimsg.h"
+#include "eiLib/msgdef.h"
 
 using namespace eiMsg;
+using namespace eiCom;
 
 int main(int argc, char *argv[])
 {
@@ -37,10 +39,10 @@ int main(int argc, char *argv[])
 
     unsigned char msg1[1024];
 
-    int len = s.serialize(msg1);
-    msg1[len]=0;
+    unsigned char * ptr = s.serialize(msg1);
+    msg1[ptr-msg1]=0;
 
-    cout<<"----msg0=" << (int)msg1[0] << "[" << msg1 <<"]"<< len<< endl;
+    cout<<"----msg0=" << (int)msg1[0] << "[" << msg1 <<"]"<< ptr-msg1<< endl;
 
 
     Put s1;
@@ -48,12 +50,24 @@ int main(int argc, char *argv[])
 
     cout<< "==>[" << s1.item << "|" << s1.infoLen << "|" << s1.info << "]" << s1.token <<endl;
 
+    char test[40];
+    unsigned char msg3[1024];
+    unsigned char * msg2 = msg3;
+    for(int i = 0; i< 5; i++)
+    {
+        sprintf(test, "test number %d", i);
+        msg2 = serInt32(msg2, i);
+        msg2 = serString(msg2, test);
+    }
 
-
-
-
-
-
+msg2 = msg3;
+int32_t x;
+    for(int i = 0; i< 5; i++)
+    {
+         msg2 = deserInt32(msg2, &x);
+         msg2 = deserString(msg2, test);
+            cout << test <<  "==" << x << endl;
+    }
 
    // l1.deserialize(msg1);
 
@@ -74,21 +88,21 @@ int main(int argc, char *argv[])
             switch(atoi(rec.msgid))
             {
             case mi_Logon:
-                logon.deserialize((unsigned char *)rec.msgbuffer);
+                logon.deserializeInt((unsigned char *)rec.msgbuffer);
                 printf("logon ==> %s %s\n", logon.name, logon.pwd);
                 msg.setBody("6", "logon response", 14);
                 com.sendMsg(msg);
                 break;
             case mi_Ping:
-                p.deserialize((unsigned char *)rec.msgbuffer);
+                p.deserializeInt((unsigned char *)rec.msgbuffer);
                 printf("recieved ping %.4s\n", p.token);
                 break;
             case mi_Loopback:
-                l.deserialize((unsigned char *)rec.msgbuffer);
+                l.deserializeInt((unsigned char *)rec.msgbuffer);
                 printf("recieved loopback %.4s\n", l.token);
                 break;
             case mi_LogonResponse:
-                lr.deserialize((unsigned char *)rec.msgbuffer);
+                lr.deserializeInt((unsigned char *)rec.msgbuffer);
                 printf("logon response %.4s\n", lr.token);
                 break;
             case mi_Notify:

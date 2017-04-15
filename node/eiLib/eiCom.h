@@ -1,22 +1,13 @@
 #ifndef EICOM_H_
 #define EICOM_H_
 
-/*#include "comIO.h"
-#include "eimsg.h"
-#include "msgrecord.h"
-#include "eiqueue.h"
-#include <memory.h>
-#include <stdio.h>
-*/
+
 #include "eimsg.h"
 #include "eiqueue.h"
 
 #include "comIO.h"
 namespace eiMsg
 {
-
-
-using namespace eiMsg;
 
 const int EI_USER = 1000;
 

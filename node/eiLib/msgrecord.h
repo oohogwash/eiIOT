@@ -9,8 +9,6 @@
 namespace eiMsg
 {
 
-//using namespace ei;
-
 
 class MsgRecord
 {

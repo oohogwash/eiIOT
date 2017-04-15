@@ -10,7 +10,7 @@ class Module
 
 public:
    int  type=0;
-
+   char idLen;
    int priorityID;
    int groupID;
 
@@ -22,6 +22,9 @@ public:
    void dump();
    virtual const char * moduleTypeText() = 0;
    Module();
+   virtual int serialize(unsigned char * msg);
+   virtual int deserialize( unsigned char * msg);
+
 
 };
 

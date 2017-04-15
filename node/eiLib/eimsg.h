@@ -1,8 +1,18 @@
 #ifndef EIMSG_H
 #define EIMSG_H
+#include <inttypes.h>
 
 namespace eiMsg
 {
+
+typedef enum tag_REST_VERB
+{
+    rv_GET,
+    rv_PUT,
+    rv_POST,
+    rv_DELETE
+}REST_VERB;
+
 
 // msg and header item sizes
 static const int MAXMSGLEN = 512;
@@ -92,8 +102,10 @@ class MsgBody
   static const int MAXTOKENLEN = 4;
   unsigned char token[MAXTOKENLEN+1];
   unsigned char tokenLen;
-  virtual int serialize(unsigned char * msg);
-  virtual int deserialize( unsigned char * msg);
+  virtual int serializeInt(unsigned char * msg);
+  virtual int deserializeInt( unsigned char * msg);
+  virtual unsigned char * serialize(unsigned char * msg);
+  virtual unsigned char * deserialize( unsigned char * msg);
   MsgBody(): tokenLen(0){}
   void setToken(unsigned char * token);
   unsigned char * getToken();
@@ -108,8 +120,8 @@ class EmptyMsgBody : public MsgBody
 
 public:
   EmptyMsgBody(){}
-  int serialize(unsigned char * msg);
-  int deserialize( unsigned char * msg);
+  int serializeInt(unsigned char * msg);
+  int deserializeInt( unsigned char * msg);
 
 
 };
@@ -137,7 +149,8 @@ typedef enum MessageId
     mi_Request,
     mi_Response,
     mi_Get,
-    mi_Set
+    mi_Set,
+    mi_Rest
 
     
 }MESSAGE_ID;
@@ -162,12 +175,14 @@ public:
   Logon(char * name, char * pwd);
 
   char name[NAMELEN+1];
-  char nameLen;
+  unsigned char nameLen;
   char pwd[PWDLEN+1];
-  char pwdLen;
+  unsigned char pwdLen;
+  unsigned char * serialize(unsigned char * msg);
+  unsigned char * deserialize( unsigned char * msg);
 
-  int serialize(unsigned char * msg);
-  int deserialize( unsigned char * msg);
+  int serializeInt(unsigned char * msg);
+  int deserializeInt( unsigned char * msg);
 };
 
 
@@ -199,15 +214,18 @@ public:
 class Loopback : public MsgBody
 {
     static const int MAXTEXTLEN = 256;
-    char textLen;
+    unsigned char textLen;
 
 public:
   char text[MAXTEXTLEN+1];
   char mid(){return mi_Loopback;}
   Loopback();
   Loopback(char * text);
-  int serialize(unsigned char * msg);
-  int deserialize( unsigned char * msg);
+  int serializeInt(unsigned char * msg);
+  int deserializeInt( unsigned char * msg);
+  unsigned char * serialize(unsigned char * msg);
+  unsigned char * deserialize( unsigned char * msg);
+
 };
 
 
@@ -224,7 +242,7 @@ public:
  char idLen;
  static const int MAXPSMSGLEN = 256;
  char psmsg[MAXPSMSGLEN+1];
- int psmsgLen;
+ uint16_t psmsgLen;
 
   PubsubBase(){}
   PubsubBase( char * topic, char * id, char * msg, int msglen )
@@ -233,8 +251,11 @@ public:
       idLen = strcpyn(this->id, MAXIDLEN, id);
       psmsgLen =  memcpyn(psmsg, MAXPSMSGLEN, msg, msglen);
   }
-  int serialize(unsigned char * msg);
-  int deserialize( unsigned char * msg);
+  int serializeInt(unsigned char * msg);
+  int deserializeInt( unsigned char * msg);
+  unsigned char * serialize(unsigned char * msg);
+  unsigned char * deserialize( unsigned char * msg);
+
 };
 
 
@@ -308,12 +329,15 @@ class Get : public MsgBody
 
 public:
     char item[MAXITEMLEN+1];
-    char itemLen;
+    uint16_t itemLen;
     char mid(){return mi_Get;}
   Get();
   Get( char * item);
-  int serialize(unsigned char * msg);
-  int deserialize( unsigned char * msg);
+  int serializeInt(unsigned char * msg);
+  int deserializeInt( unsigned char * msg);
+  unsigned char * serialize(unsigned char * msg);
+  unsigned char * deserialize( unsigned char * msg);
+
 };
 
 class Put : public Get
@@ -322,21 +346,58 @@ class Put : public Get
 
 public:
     char info[MAXDATALEN+1];
-    int infoLen;
+    uint16_t infoLen;
     char mid(){return mi_Set;}
     Put();
     Put(char * item, char * info, int len);
-    int serialize(unsigned char * msg);
-    int deserialize( unsigned char * msg);
+    int serializeInt(unsigned char * msg);
+    int deserializeInt( unsigned char * msg);
+    unsigned char * serialize(unsigned char * msg);
+    unsigned char * deserialize( unsigned char * msg);
+
 };
 
 class Post : public Put
 {
+    static const int MAXDATALEN = 1024;
+
+public:
+    char info[MAXDATALEN+1];
+    int infoLen;
+    char mid(){return mi_Set;}
+    Post();
+    Post(char * item, char * info, int len);
+    int serializeInt(unsigned char * msg);
+    int deserializeInt( unsigned char * msg);
+    unsigned char * serialize(unsigned char * msg);
+    unsigned char * deserialize( unsigned char * msg);
 
 };
 
 class Delete : public Get
 {
+
+};
+
+class Rest : public MsgBody
+{
+    static const int MAXCOLLECTIOMDATALEN = 1024;
+public:
+    char collection[MAXCOLLECTIOMDATALEN+1];
+    int collectionLen;
+    REST_VERB verb;
+    char mid(){return mi_Rest;}
+    Rest();
+    Rest(REST_VERB verb, char * item, char * collection, int collectionLen);
+    void Get(char * item);
+    void Delete(char * item);
+    int Put(char * item, char * collection, int collectionLen);
+    int Post(char * item, char * collection, int collectionLen);
+    int serializeInt(unsigned char * msg);
+    int deserializeInt( unsigned char * msg);
+    unsigned char * serialize(unsigned char * msg);
+    unsigned char * deserialize( unsigned char * msg);
+
 
 };
 
