@@ -102,8 +102,6 @@ class MsgBody
   static const int MAXTOKENLEN = 4;
   unsigned char token[MAXTOKENLEN+1];
   unsigned char tokenLen;
-  virtual int serializeInt(unsigned char * msg);
-  virtual int deserializeInt( unsigned char * msg);
   virtual unsigned char * serialize(unsigned char * msg);
   virtual unsigned char * deserialize( unsigned char * msg);
   MsgBody(): tokenLen(0){}
@@ -120,8 +118,8 @@ class EmptyMsgBody : public MsgBody
 
 public:
   EmptyMsgBody(){}
-  int serializeInt(unsigned char * msg);
-  int deserializeInt( unsigned char * msg);
+  unsigned char *  serialize(unsigned char * msg);
+  unsigned char *  deserialize( unsigned char * msg);
 
 
 };
@@ -180,9 +178,6 @@ public:
   unsigned char pwdLen;
   unsigned char * serialize(unsigned char * msg);
   unsigned char * deserialize( unsigned char * msg);
-
-  int serializeInt(unsigned char * msg);
-  int deserializeInt( unsigned char * msg);
 };
 
 
@@ -221,8 +216,6 @@ public:
   char mid(){return mi_Loopback;}
   Loopback();
   Loopback(char * text);
-  int serializeInt(unsigned char * msg);
-  int deserializeInt( unsigned char * msg);
   unsigned char * serialize(unsigned char * msg);
   unsigned char * deserialize( unsigned char * msg);
 
@@ -251,8 +244,6 @@ public:
       idLen = strcpyn(this->id, MAXIDLEN, id);
       psmsgLen =  memcpyn(psmsg, MAXPSMSGLEN, msg, msglen);
   }
-  int serializeInt(unsigned char * msg);
-  int deserializeInt( unsigned char * msg);
   unsigned char * serialize(unsigned char * msg);
   unsigned char * deserialize( unsigned char * msg);
 
@@ -333,8 +324,6 @@ public:
     char mid(){return mi_Get;}
   Get();
   Get( char * item);
-  int serializeInt(unsigned char * msg);
-  int deserializeInt( unsigned char * msg);
   unsigned char * serialize(unsigned char * msg);
   unsigned char * deserialize( unsigned char * msg);
 
@@ -350,8 +339,6 @@ public:
     char mid(){return mi_Set;}
     Put();
     Put(char * item, char * info, int len);
-    int serializeInt(unsigned char * msg);
-    int deserializeInt( unsigned char * msg);
     unsigned char * serialize(unsigned char * msg);
     unsigned char * deserialize( unsigned char * msg);
 
@@ -367,8 +354,6 @@ public:
     char mid(){return mi_Set;}
     Post();
     Post(char * item, char * info, int len);
-    int serializeInt(unsigned char * msg);
-    int deserializeInt( unsigned char * msg);
     unsigned char * serialize(unsigned char * msg);
     unsigned char * deserialize( unsigned char * msg);
 

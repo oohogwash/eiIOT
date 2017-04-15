@@ -88,21 +88,21 @@ int32_t x;
             switch(atoi(rec.msgid))
             {
             case mi_Logon:
-                logon.deserializeInt((unsigned char *)rec.msgbuffer);
+                logon.deserialize((unsigned char *)rec.msgbuffer);
                 printf("logon ==> %s %s\n", logon.name, logon.pwd);
                 msg.setBody("6", "logon response", 14);
                 com.sendMsg(msg);
                 break;
             case mi_Ping:
-                p.deserializeInt((unsigned char *)rec.msgbuffer);
+                p.deserialize((unsigned char *)rec.msgbuffer);
                 printf("recieved ping %.4s\n", p.token);
                 break;
             case mi_Loopback:
-                l.deserializeInt((unsigned char *)rec.msgbuffer);
+                l.deserialize((unsigned char *)rec.msgbuffer);
                 printf("recieved loopback %.4s\n", l.token);
                 break;
             case mi_LogonResponse:
-                lr.deserializeInt((unsigned char *)rec.msgbuffer);
+                lr.deserialize((unsigned char *)rec.msgbuffer);
                 printf("logon response %.4s\n", lr.token);
                 break;
             case mi_Notify:
