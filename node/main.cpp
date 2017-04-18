@@ -4,9 +4,15 @@ using namespace std;
 #include "eiLib/eiCom.h"
 #include "eiLib/eimsg.h"
 #include "eiLib/msgdef.h"
+#include "eimodule/modulemsg.h"
+#include "eiLib/objectfactory.h"
+#include "eiModule/LogicModule.h"
 
 using namespace eiMsg;
 using namespace eiCom;
+using namespace eiModule;
+using namespace eiKernel;
+
 
 int main(int argc, char *argv[])
 {
@@ -23,6 +29,37 @@ int main(int argc, char *argv[])
     Loopback l1, l((char *)"loopbacktest");
     Ping p;
     Publish pub;
+
+    ObjectFactory of;
+
+    void * obj = of.getObject("Logic Module");
+
+   Module *pm = (Module *) obj;
+   pm->dump();
+cout << "==========" << endl;
+
+    ModuleMsg mm;
+   LogicModule m1("mod1", 1,2,3);
+   Module m2("mod2", 11,12,13);
+   Module m23("mod23", 111,112,113);
+
+    Module modules[] = {m1,m2,m23};
+
+    unsigned char * mmsg = mm.serialize(eiMsg::rv_POST, modules, 1);
+
+    ModuleMsg mmin;
+    mmin.deserialize(mm.collection);
+
+
+    //  modules = mm;
+      for( Module ** ptrm = mmin.modules;
+           ptrm - mmin.modules < mmin.modulesLen; ptrm++)
+      {
+          printf( "-------kkk------%s\n", (*ptrm)->clsName);
+          (*ptrm)->dump();
+      }
+
+ cout << "collection len " << mmsg - mm.collection << endl;
 
     Put s((char *)"sjjkl", (char *)"abcde", 4);
 

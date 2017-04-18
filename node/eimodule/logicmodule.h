@@ -17,8 +17,12 @@ class LogicModule : public Module
     char logic[MAXLOGICLEN];
 public:
     LogicModule();
+    LogicModule( char * id, int16_t type,  int16_t priorityID, int16_t groupID);
     void dump();
     const char * moduleTypeText(){return "logic";}
+    unsigned char *  serialize(unsigned char * msg);
+    unsigned char *  deserialize( unsigned char * msg);
+
 };
 
 }// eiMsgModule

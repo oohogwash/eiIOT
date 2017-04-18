@@ -3,16 +3,24 @@
 
 #include "eiLib/eimsg.h"
 #include "eimodule/module.h"
-#
+
 
 namespace eiModule
 {
 
 class ModuleMsg : public eiMsg::Rest
 {
+    eiMsg::REST_VERB verb;
+
 public:
+    Module ** modules ;
+    int16_t modulesLen;
+
     ModuleMsg();
-    ModuleMsg(eiMsg::REST_VERB verb, Module * modules [], int moduleLen);
+    unsigned char * serialize (eiMsg::REST_VERB verb, Module * modules, int moduleLen);
+    unsigned char * deserialize (unsigned char * msg);
+
+
 };
 
 

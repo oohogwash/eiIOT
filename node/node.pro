@@ -22,7 +22,9 @@ SOURCES += main.cpp \
     eimodule/module.cpp \
     eimodule/modulemanager.cpp \
     eimodule/modulemsg.cpp \
-    eiLib/msgdef.cpp
+    eiLib/msgdef.cpp \
+    eiLib/objectfactory.cpp \
+    eiLib/createableobject.cpp
 
 HEADERS += \
     eiLib/comIO.h \
@@ -47,4 +49,6 @@ HEADERS += \
     eimodule/module.h \
     eimodule/modulemanager.h \
     eimodule/modulemsg.h \
-    eiLib/msgdef.h
+    eiLib/msgdef.h \
+    eiLib/objectfactory.h \
+    eiLib/createableobject.h

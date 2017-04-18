@@ -1,29 +1,30 @@
 #ifndef MODULE_H
 #define MODULE_H
 #include <stdio.h>
+#include <inttypes.h>
+#include "eiLib/createableobject.h"
 
 namespace eiModule
 {
 
-class Module
+class Module : public eiKernel::CreateableObject
 {
-
-public:
-   int  type=0;
+protected:
+   int16_t  type=0;
    char idLen;
-   int priorityID;
-   int groupID;
-
-
+   int16_t priorityID;
+   int16_t groupID;
 public:
+   Module();
+   Module( char * id, int16_t type,  int16_t priorityID, int16_t groupID);
+
    static const int MAXIDLEN = 128;
 
    char id[MAXIDLEN +1];
    void dump();
-   virtual const char * moduleTypeText() = 0;
-   Module();
-   virtual int serialize(unsigned char * msg);
-   virtual int deserialize( unsigned char * msg);
+ //  virtual const char * moduleTypeText() = 0;
+   unsigned char *  serialize(unsigned char * msg);
+   unsigned char *  deserialize( unsigned char * msg);
 
 
 };

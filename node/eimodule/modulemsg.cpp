@@ -1,37 +1,65 @@
 #include "eiLib/osheader.h"
 #include "modulemsg.h"
-
+#include "eiLib/objectfactory.h"
 #include "eiLib/msgdef.h"
+#include "eiLib/createableobject.h"
+#include "eimodule/logicmodule.h"
 
 using namespace eiMsg;
 using namespace eiCom;
+using namespace eiKernel;
 
 namespace eiModule
 {
 
-ModuleMsg::ModuleMsg()
+ModuleMsg::ModuleMsg() : Rest()
 {
 
 }
 
-ModuleMsg::ModuleMsg(REST_VERB verb, Module * modules [], int moduleLen) :
-    Rest()
+unsigned char * ModuleMsg::serialize(REST_VERB verb, Module * modules , int moduleLen)
 {
   this->verb = verb;
-  collectionLen = 2;
-  SCH ich;
-  ich.int16 = htons(moduleLen);
-  memcpyn(&collection[collectionLen],2, ich.ch, 2);
-  int len;
+  unsigned char * msg = collection;
+  msg = serUChar(msg, verb);
+  msg = serInt16(msg, moduleLen);
   for(int idx =0; idx < moduleLen; idx++)
   {
-      ich.int16 = htons( modules[idx]->serialize((unsigned char *)&collection[collectionLen+2]));
-      memcpyn(&collection[collectionLen], 2, ich.ch,2);
-      collectionLen +=  len;
+    msg = serSmallString(msg, modules[idx].clsid); //there are derived types of modules so serialise clsid values
   }
+  for(int idx =0; idx < moduleLen; idx++)
+  {
+      msg =  modules[idx].serialize(msg);
+  }
+
+
+
+
+  collectionLen = msg-collection;
+  return msg;
 }
 
+unsigned char * ModuleMsg::deserialize (unsigned char * msg)
+{
+    //Note this method creates new array and new Module pointers in the array
+    msg = deserUChar(msg, (unsigned char *)&verb);
+    msg = deserInt16(msg,  (int16_t *)&modulesLen);
+    modules = new Module * [modulesLen];
+    char moduleClsid[modulesLen][CreateableObject::MAX_CLSID_LEN];
 
+    for(int idx =0; idx < modulesLen; idx++)
+    {
+      msg = deserSmallString( msg , moduleClsid[idx]); //there are derived types of modules so serialise clsid values
+    }
+    for(int idx =0; idx < modulesLen; idx++)
+    {
+        modules[idx] =  ( Module *) eiKernel::ObjectFactory::getObject((char *)moduleClsid[idx]);
+        msg = modules[idx]->deserialize(msg);
+        modules[idx]->dump();
+    }
+    collectionLen = msg - collection;
+    return msg;
+}
 
 
 

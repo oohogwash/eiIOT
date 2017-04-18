@@ -1,11 +1,12 @@
 #ifndef EIMSG_H
 #define EIMSG_H
 #include <inttypes.h>
+#include "createableobject.h"
 
 namespace eiMsg
 {
 
-typedef enum tag_REST_VERB
+typedef enum tag_REST_VERB : unsigned char
 {
     rv_GET,
     rv_PUT,
@@ -93,7 +94,7 @@ public:
 
 
 
-class MsgBody
+class MsgBody : public eiKernel::CreateableObject
 {
    public:
   static int memcpyn(char *dest, int destlen, char * source, int sourcelen, bool addNullTerminator=false);
@@ -368,7 +369,7 @@ class Rest : public MsgBody
 {
     static const int MAXCOLLECTIOMDATALEN = 1024;
 public:
-    char collection[MAXCOLLECTIOMDATALEN+1];
+    unsigned char collection[MAXCOLLECTIOMDATALEN+1];
     int collectionLen;
     REST_VERB verb;
     char mid(){return mi_Rest;}
@@ -378,8 +379,6 @@ public:
     void Delete(char * item);
     int Put(char * item, char * collection, int collectionLen);
     int Post(char * item, char * collection, int collectionLen);
-    int serializeInt(unsigned char * msg);
-    int deserializeInt( unsigned char * msg);
     unsigned char * serialize(unsigned char * msg);
     unsigned char * deserialize( unsigned char * msg);
 

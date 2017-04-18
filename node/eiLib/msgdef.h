@@ -11,20 +11,13 @@ public:
     msgDef();
 };
 
-int memcpyn(char *dest, int destlen, char * source, int sourcelen, bool addNullTerminator=false);
-int strcpyn(char * dest, int destlen, char * source);
+int memcpyn(char *dest,  const int destlen, const char * source, const int sourcelen, const bool addNullTerminator=false);
+int strcpyn(char * dest,  const int destlen, const char * source);
 
 
 char * memcpyn2(char *dest, char * source, int len);
 unsigned char * memcpyn2(unsigned char *dest, char * source, int len);
 
-union SCH
-{
-    char ch[2];
-    unsigned char uch[2];
-    int16_t int16;
-
- };
 
 union I16CH
 {
@@ -49,7 +42,7 @@ union I64CH
     uint64_t ui64;
 };
 
-
+unsigned char * serUChar( unsigned char * msg, unsigned char value);
 unsigned char * serInt16(unsigned char * msg, int16_t value);
 unsigned char * serUInt16(unsigned char * msg, uint16_t value);
 unsigned char * serInt32(unsigned char * msg, int32_t value);
@@ -61,6 +54,7 @@ unsigned char * serCharArr(unsigned char * msg, char * value, uint16_t len);
 unsigned char * serString(unsigned char * msg, char * value);
 unsigned char * serSmallString(unsigned char * msg, char * value);
 
+unsigned char * deserUChar(unsigned char * msg, unsigned char *value);
 unsigned char * deserInt16(unsigned char * msg, int16_t  * value);
 unsigned char * deserUInt16(unsigned char * msg, uint16_t  * value);
 unsigned char * deserInt32(unsigned char * msg, int32_t * value);
