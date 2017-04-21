@@ -1,6 +1,7 @@
 #include "osheader.h"
 #include "rs232.h"
 
+#ifdef NOT_ARDUINO
 
 namespace eiMsg
 {
@@ -826,3 +827,5 @@ int RS232_GetPortnr(const char *devname)
 
 
 } // eiMsg
+
+#endif // NOT_ARDUINO

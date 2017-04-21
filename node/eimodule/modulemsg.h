@@ -1,8 +1,8 @@
 #ifndef MODULEMSG_H
 #define MODULEMSG_H
 
-#include "eiLib/eimsg.h"
-#include "eimodule/module.h"
+#include "eimsg.h"
+#include "module.h"
 
 
 namespace eiModule

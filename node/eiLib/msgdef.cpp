@@ -7,6 +7,30 @@
 
 namespace eiCom {
 
+
+#ifndef NOT_ARDUINO
+
+#define htons(x) ( ((x)<< 8 & 0xFF00) | \
+                   ((x)>> 8 & 0x00FF) )
+#define ntohs(x) htons(x)
+
+#define htonl(x) ( ((x)<<24 & 0xFF000000UL) | \
+                   ((x)<< 8 & 0x00FF0000UL) | \
+                   ((x)>> 8 & 0x0000FF00UL) | \
+                   ((x)>>24 & 0x000000FFUL) )
+#define ntohl(x) htonl(x)
+
+#define ntohll(x) ntohll(x)
+//#define htonll(x) htonll(x)
+
+#endif
+
+
+
+
+
+
+
 int strcpyn(char * dest, const int destlen, const char * source)
 {
     int sourcelen = strlen(source);
@@ -85,7 +109,9 @@ unsigned char * serInt64(unsigned char * msg, int64_t value)
 {
   //  *msg++ = 8; // length
     I64CH ich;
+    #ifdef NOT_ARDUINO
     ich.i64 = htonll(value);
+    #endif
     memcpy(msg, ich.ch, 8 );
     return msg+8;
 }
@@ -176,7 +202,9 @@ unsigned char * deserInt64(unsigned char * msg, int64_t  * value)
    // msg++ ; // length is always 8 so ignor
     I64CH ich;
     memcpy(ich.ch, msg, 8 );
+    #ifdef NOT_ARDUINO
     *value = htonll(ich.i64);
+    #endif
     return msg+8;
 }
 

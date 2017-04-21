@@ -3,6 +3,7 @@
 
 #define __MAC_OSX__
 
+#ifdef NOT_ARDUINO
 
 #if defined(__linux__) || defined(__FreeBSD__) || defined(__MAC_OSX__)
 
@@ -22,6 +23,7 @@
 
 #endif
 
+#endif //NOT_ARDUINO
 
 
 

@@ -2,7 +2,8 @@ TEMPLATE = app
 CONFIG += console c++11
 CONFIG -= app_bundle
 CONFIG -= qt
-
+DEFINES += NOT_ARDUINO
+INCLUDEPATH += ./eiLib ./eiModule
 SOURCES += main.cpp \
     eiLib/comIO.cpp \
     eiLib/comio_os.cpp \

@@ -2,7 +2,7 @@
 #define MODULE_H
 #include <stdio.h>
 #include <inttypes.h>
-#include "eiLib/createableobject.h"
+#include "createableobject.h"
 
 namespace eiModule
 {

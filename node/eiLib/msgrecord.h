@@ -1,6 +1,14 @@
 #ifndef MSGRECORD_H
 #define MSGRECORD_H
+
+#ifdef NOT_ARDUINO
+
 #include <memory.h>
+#else
+# include <string.h>
+#define memcpy strncpy
+
+#endif //NOT_ARDUINO
 
 #include "eimsg.h"
 

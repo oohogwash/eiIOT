@@ -1,6 +1,9 @@
 #ifndef COMIOCP_H
 #define COMIOCP_H
+#ifdef NOT_ARDUINO
+
 #include "comIO.h"
+
 namespace eiMsg
 {
 
@@ -20,4 +23,7 @@ public:
 
 
 } // eiMsg
+
+#endif // NOT_ARDUINO
+
 #endif // COMIOCP_H

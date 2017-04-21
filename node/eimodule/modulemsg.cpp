@@ -1,9 +1,9 @@
-#include "eiLib/osheader.h"
+#include "osheader.h"
 #include "modulemsg.h"
-#include "eiLib/objectfactory.h"
-#include "eiLib/msgdef.h"
-#include "eiLib/createableobject.h"
-#include "eimodule/logicmodule.h"
+#include "objectfactory.h"
+#include "msgdef.h"
+#include "createableobject.h"
+#include "logicmodule.h"
 
 using namespace eiMsg;
 using namespace eiCom;
@@ -25,7 +25,7 @@ unsigned char * ModuleMsg::serialize(REST_VERB verb, Module * modules , int modu
   msg = serInt16(msg, moduleLen);
   for(int idx =0; idx < moduleLen; idx++)
   {
-    msg = serSmallString(msg, modules[idx].clsid); //there are derived types of modules so serialise clsid values
+    msg = serSmallString(msg, modules[idx].clsName); //there are derived types of modules so serialise clsid values
   }
   for(int idx =0; idx < moduleLen; idx++)
   {

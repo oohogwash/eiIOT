@@ -1,6 +1,8 @@
 #ifndef RS232_H
 #define RS232_H
 
+#ifdef NOT_ARDUINO
+
 namespace eiMsg
 {
 
@@ -81,5 +83,6 @@ int RS232_GetPortnr(const char *);
 
 } // eiMsg
 
+#endif //NOT_ARDUINO
 
 #endif // RS232_H

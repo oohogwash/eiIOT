@@ -2,7 +2,7 @@
 
 #include "eiqueue.h"
 
-#include "eiLib/eiCom.h"
+#include "eiCom.h"
 
 namespace eiMsg
 {

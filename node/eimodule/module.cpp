@@ -1,5 +1,5 @@
 #include "module.h"
-#include "eiLib/msgdef.h"
+#include "msgdef.h"
 using namespace eiCom;
 namespace eiModule
 {

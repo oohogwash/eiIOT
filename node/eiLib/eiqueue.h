@@ -1,14 +1,14 @@
 #ifndef EIQUEUE_H
 #define EIQUEUE_H
 
-#include "eiLib/msgrecord.h"
+#include "msgrecord.h"
 
 namespace eiMsg
 {
 
 class EiQueue
 {
-    static const int MAX_SIZE = 105;
+    static const int MAX_SIZE = 55;
 private:
    MsgRecord data[MAX_SIZE];
    int front;

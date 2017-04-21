@@ -1,6 +1,6 @@
 #include "logicmodule.h"
 #include <string.h>
-#include "eiLib/msgdef.h"
+#include "msgdef.h"
 
 using namespace eiCom;
 
@@ -10,13 +10,13 @@ namespace eiModule
 LogicModule::LogicModule():Module()
 {
     type = LMTYPE::lmt_connect;
-    strcpy(clsid, "Logic Module");
+    strcpy(clsName, "Logic Module");
 }
 
 LogicModule::LogicModule( char * id, int16_t type,  int16_t priorityID, int16_t groupID):
     Module(id, LMTYPE::lmt_connect, priorityID, groupID)
 {
-    strcpy(this->clsid, "Logic Module");
+    strcpy(this->clsName, "Logic Module");
 
 }
 

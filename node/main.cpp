@@ -1,12 +1,12 @@
 #include <iostream>
 using namespace std;
-#include "eiLib/comIOCP.h"
-#include "eiLib/eiCom.h"
-#include "eiLib/eimsg.h"
-#include "eiLib/msgdef.h"
-#include "eimodule/modulemsg.h"
-#include "eiLib/objectfactory.h"
-#include "eiModule/LogicModule.h"
+#include "comIOCP.h"
+#include "eiCom.h"
+#include "eimsg.h"
+#include  "msgdef.h"
+#include  "modulemsg.h"
+#include  "objectfactory.h"
+#include  "LogicModule.h"
 
 using namespace eiMsg;
 using namespace eiCom;

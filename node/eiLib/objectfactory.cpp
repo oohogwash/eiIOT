@@ -1,9 +1,9 @@
 #include "objectfactory.h"
 #include <string.h>
 
-#include "eiModule/logicModule.h"
-#include "eimodule/displaymodule.h"
-#include "eiModule/iomodule.h"
+#include "logicModule.h"
+#include "displaymodule.h"
+#include "iomodule.h"
 
 using namespace eiModule;
 
