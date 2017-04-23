@@ -109,8 +109,10 @@ unsigned char * serInt64(unsigned char * msg, int64_t value)
 {
   //  *msg++ = 8; // length
     I64CH ich;
-    #ifdef NOT_ARDUINO
+#ifdef NOT_ARDUINO
+#ifndef _WIN
     ich.i64 = htonll(value);
+#endif
     #endif
     memcpy(msg, ich.ch, 8 );
     return msg+8;
@@ -203,8 +205,11 @@ unsigned char * deserInt64(unsigned char * msg, int64_t  * value)
     I64CH ich;
     memcpy(ich.ch, msg, 8 );
     #ifdef NOT_ARDUINO
+#ifndef _WIN
     *value = htonll(ich.i64);
+#endif
     #endif
+
     return msg+8;
 }
 

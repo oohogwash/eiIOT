@@ -13,7 +13,7 @@ LogicModule::LogicModule():Module()
     strcpy(clsName, "Logic Module");
 }
 
-LogicModule::LogicModule( char * id, int16_t type,  int16_t priorityID, int16_t groupID):
+LogicModule::LogicModule( const char * id, int16_t type,  int16_t priorityID, int16_t groupID):
     Module(id, LMTYPE::lmt_connect, priorityID, groupID)
 {
     strcpy(this->clsName, "Logic Module");

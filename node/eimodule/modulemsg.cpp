@@ -45,15 +45,19 @@ unsigned char * ModuleMsg::deserialize (unsigned char * msg)
     msg = deserUChar(msg, (unsigned char *)&verb);
     msg = deserInt16(msg,  (int16_t *)&modulesLen);
     modules = new Module * [modulesLen];
-    char moduleClsid[modulesLen][CreateableObject::MAX_CLSID_LEN];
+    //int x = modulesLen;
+    //char moduleClsid[x][CreateableObject::MAX_CLSID_LEN];
+    char ** moduleClsid = new char * [modulesLen];
 
     for(int idx =0; idx < modulesLen; idx++)
     {
+      moduleClsid[idx] = new char[CreateableObject::MAX_CLSID_LEN];
       msg = deserSmallString( msg , moduleClsid[idx]); //there are derived types of modules so serialise clsid values
     }
     for(int idx =0; idx < modulesLen; idx++)
     {
         modules[idx] =  ( Module *) eiKernel::ObjectFactory::getObject((char *)moduleClsid[idx]);
+        delete(moduleClsid[idx]);
         msg = modules[idx]->deserialize(msg);
         modules[idx]->dump();
     }

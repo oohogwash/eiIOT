@@ -16,7 +16,7 @@ protected:
    int16_t groupID;
 public:
    Module();
-   Module( char * id, int16_t type,  int16_t priorityID, int16_t groupID);
+   Module( const char * id, int16_t type,  int16_t priorityID, int16_t groupID);
 
    static const int MAXIDLEN = 128;
 

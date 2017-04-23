@@ -7,7 +7,7 @@ Module::Module()
 {
 
 }
-Module::Module(char * id, int16_t type, int16_t priorityID, int16_t groupID) //:CreateableObject("NULL")
+Module::Module(const char * id, int16_t type, int16_t priorityID, int16_t groupID) //:CreateableObject("NULL")
 {
     this->type = type;
     strcpyn(this->id, MAXIDLEN, id);

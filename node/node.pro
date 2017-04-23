@@ -4,6 +4,11 @@ CONFIG -= app_bundle
 CONFIG -= qt
 DEFINES += NOT_ARDUINO
 INCLUDEPATH += ./eiLib ./eiModule
+win32{
+LIBS += ws2_32.lib
+DEFINES += _WIN
+}
+
 SOURCES += main.cpp \
     eiLib/comIO.cpp \
     eiLib/comio_os.cpp \

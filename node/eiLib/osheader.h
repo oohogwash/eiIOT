@@ -1,7 +1,7 @@
 #ifndef OSHEADER_H
 #define OSHEADER_H
 
-#define __MAC_OSX__
+
 
 #ifdef NOT_ARDUINO
 
@@ -16,6 +16,7 @@
 #include <limits.h>
 #include <sys/file.h>
 #include <errno.h>
+
 
 #else
 
