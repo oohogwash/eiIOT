@@ -8,6 +8,14 @@ win32{
 LIBS += ws2_32.lib
 DEFINES += _WIN
 }
+macx
+{
+DEFINES += __MAC_OSX__
+}
+linux
+{
+DEFINES += __linux__
+}
 
 SOURCES += main.cpp \
     eiLib/comIO.cpp \
