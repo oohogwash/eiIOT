@@ -4,7 +4,8 @@ CONFIG -= app_bundle
 CONFIG -= qt
 DEFINES += NOT_ARDUINO
 INCLUDEPATH += ./eiLib ./eiModule
-win32{
+win{
+message("building win")
 LIBS += ws2_32.lib
 DEFINES += _WIN
 }
@@ -13,10 +14,12 @@ linux
 {
 macx
 {
+message("building mac")
 DEFINES += __MAC_OSX__
 }
 !macx
 {
+message("building linux")
 DEFINES += __linux__
 }
 }
