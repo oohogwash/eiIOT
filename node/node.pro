@@ -9,17 +9,11 @@ LIBS += ws2_32.lib
 DEFINES += _WIN
 }
 !win32{
-linux
-{
 macx
 {
 DEFINES += __MAC_OSX__
 }
-!macx
-{
-DEFINES += __linux__
-}
-}
+
 }
 
 SOURCES += main.cpp \
