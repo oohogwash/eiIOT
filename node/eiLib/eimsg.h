@@ -56,6 +56,8 @@ static char eiMsgID = 'H';
 static const int MAXBODYLEN = MAXMSGLEN - MSGBODYOFFSET;
 static const char MSGHDRLEN = MSGBODYOFFSET;
 
+
+
 typedef struct msgHeader
 {
     int hdrlen;
@@ -69,28 +71,6 @@ typedef union _val {
     long lval;
 }VAL;
 
-class EiMsg
-{
-    char _msgBuffer[MAXMSGLEN +1];
-    long _len;
-    char _id[MSGIDLEN+1];
-public:
-    EiMsg();
-
-    char * body();
-    char *  msgID();
-    long len(void);
-    static char sequenceIDin;//iterate from 0..255 for each msg sent
-    static char sequenceIDout; //iterate from 0..255 for each msg recd
-    char getSequenceID();
-    const char * msg(){return _msgBuffer;}
-
-    long setBody(const char * msgId, const void * body, long len);
-    void setLen(const long msgLen);
-    void setID(const char * id);
-    void dump();
-
-};
 
 
 
@@ -108,6 +88,34 @@ class MsgBody : public eiKernel::CreateableObject
   MsgBody(): tokenLen(0){}
   void setToken(unsigned char * token);
   unsigned char * getToken();
+
+};
+
+class EiMsg
+{
+    unsigned char _msgBuffer[MAXMSGLEN +1];
+     long _len;
+    unsigned char _id[MSGIDLEN+1];
+public:
+    EiMsg();
+
+    unsigned char * body();
+    unsigned char *  msgID();
+    long len(void);
+    static unsigned char sequenceIDin;//iterate from 0..255 for each msg sent
+    static unsigned char sequenceIDout; //iterate from 0..255 for each msg recd
+    unsigned char getSequenceID();
+    const unsigned char * msg(){return _msgBuffer;}
+    long setBody(const  char * msgId, const void * body, long len)
+    { return setBody( (unsigned char * ) msgId, body, len);}
+    long setBody(const  unsigned char * msgId, MsgBody * msgbody);
+    long setBody(const   char * msgId, MsgBody * msgbody)
+    {return setBody((const  unsigned char *) msgId,  msgbody);}
+
+    long setBody(const unsigned char * msgId, const void * body, long len);
+    void setLen(const long msgLen);
+    void setID( const unsigned char * id);
+    void dump();
 
 };
 

@@ -1,6 +1,6 @@
 #include "objectfactory.h"
 #include <string.h>
-
+#include "commodule.h"
 #include "logicModule.h"
 #include "displaymodule.h"
 #include "iomodule.h"
@@ -11,13 +11,15 @@ typedef enum objId : int
 {
     oi_logicModule = 1,
     oi_displayModule,
-    oi_ioModule
+    oi_ioModule,
+    oi_comModule
 }objId;
 
 static  const char * objName [] = {
-  "Logic Module",
-  "Display Module",
-  "IO Module",
+  "LogicModule",
+  "DisplayModule",
+  "IoModule",
+   "ComModule",
    0
 };
 
@@ -30,6 +32,7 @@ int findObject( const char * id)
             return idx+1;
         }
     }
+    printf("ERROR Cannot find object id %s\n", id);
     return 0;
 }
 
@@ -52,8 +55,12 @@ void * ObjectFactory::getObject( const char * id)
         return new IoModule();
     case oi_logicModule:
         return new LogicModule();
-    }
+    case oi_comModule:
+        return new ComModule();
+    default:
+        printf("ERROR: No constructor for  ID %s\n", id);
 
+    }
 
     return 0;
 }

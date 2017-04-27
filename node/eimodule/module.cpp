@@ -1,3 +1,4 @@
+#include <string.h>
 #include "module.h"
 #include "msgdef.h"
 using namespace eiCom;
@@ -5,7 +6,7 @@ namespace eiModule
 {
 Module::Module()
 {
-
+  strcpy(clsName, "Module");
 }
 Module::Module(const char * id, int16_t type, int16_t priorityID, int16_t groupID) //:CreateableObject("NULL")
 {
@@ -13,6 +14,7 @@ Module::Module(const char * id, int16_t type, int16_t priorityID, int16_t groupI
     strcpyn(this->id, MAXIDLEN, id);
     this->priorityID = priorityID;
     this->groupID = groupID;
+    strcpy(clsName, "Module");
 }
 
 unsigned char * Module::serialize(unsigned char * msg)
@@ -36,7 +38,7 @@ unsigned char * Module::deserialize( unsigned char * msg)
 
  void Module::dump()
  {
-    // printf("Module  type  %s  id = %s\n", moduleTypeText(), id);
-     printf(" id = %s, type = %d, priotiry = %d, group = %d\n", id, type, priorityID, groupID);
+     CreateableObject::dump();
+     printf("id = %s, type = %d, priority = %d, group = %d\n", id, type, priorityID, groupID);
  }
 } // eiMsgModule

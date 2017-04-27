@@ -8,19 +8,29 @@ using namespace std;
 #include  "modulemsg.h"
 #include  "objectfactory.h"
 #include  "LogicModule.h"
+#include "commodule.h"
+#include  "iomodule.h"
+#include "displaymodule.h"
+
+using namespace std;
 
 using namespace eiMsg;
 using namespace eiCom;
 using namespace eiModule;
 using namespace eiKernel;
 
+char * itoa(int i, char buff[])
+{
+    sprintf(buff, "%d", i);
+    return buff;
+}
 
 int main(int argc, char *argv[])
 {
 
     Subscribe n((char *)"topic", (char *)"==ID==", (char *)"event",5);
 
-    ComIOCP  io;
+    ComIOsm  io;
     EiCom com(&io);
     com.init();
     printf("read chars\n");
@@ -30,6 +40,91 @@ int main(int argc, char *argv[])
     Loopback l1, l((char *)"loopbacktest");
     Ping p;
     Publish pub;
+    EiCom send(&io);
+    EiMsg sm;
+     char buff[20];
+
+     ModuleMsg mm;
+     DisplayModule m1("mod1", 1,2,3);
+    ComModule m2("mod1", 1,2,3);
+    IoModule m23("mod23", 111,112,113);
+
+     Module  modules[] = {m1,m2,m23};
+
+     unsigned char mmm[1024];
+  //   unsigned char * mmsg = mm.serialize(mmm, eiMsg::rv_POST, modules, 3);
+
+     unsigned char * mmsg1 = mmm;
+      mmsg1 = p.serialize(mmsg1);
+      mmsg1 =       mm.serialize(mmsg1, eiMsg::rv_POST, modules, 3);
+
+
+
+    sm.setBody(itoa(mi_Sys, buff), mmm,mmsg1-mmm);
+    send.sendMsg(sm);
+      send.sendMsg(sm);
+      sm.setBody(itoa(mi_Logon,buff), &logon);
+      send.sendMsg(sm);
+
+  ModuleMsg mmin;
+  unsigned char * ptr;
+  //  while(1)
+    {
+        com.processMessages();
+        ComIOCP::sleep(140);
+       while(com.msgQueue.Size() >0 )
+        {
+           printf("ddddd\n");
+            const MsgRecord & rec = com.msgQueue.Dequeue();
+            switch(atoi(rec.msgid))
+            {
+            case mi_Sys:
+                ptr = p.deserialize((unsigned char *)rec.msgbuffer);
+                printf("recieved ping %.4s\n", p.token);
+                mmin.deserialize(ptr);//(unsigned char *)rec.msgbuffer);
+                 for( Module ** ptrm = mmin.modules; ptrm - mmin.modules < mmin.modulesLen; ptrm++)
+                  {
+                     (*ptrm)->dump();
+                     fflush(stdout);
+                  }
+                break;
+            case mi_Logon:
+                logon.deserialize((unsigned char *)rec.msgbuffer);
+                printf("logon ==> %s %s\n", logon.name, logon.pwd);
+                msg.setBody("6", "logon response", 14);
+                com.sendMsg(msg);
+                break;
+            case mi_Ping:
+                p.deserialize((unsigned char *)rec.msgbuffer);
+                printf("recieved ping %.4s\n", p.token);
+                break;
+            case mi_Loopback:
+                l.deserialize((unsigned char *)rec.msgbuffer);
+                printf("recieved loopback %.4s\n", l.token);
+                break;
+            case mi_LogonResponse:
+                lr.deserialize((unsigned char *)rec.msgbuffer);
+                printf("logon response %.4s\n", lr.token);
+                break;
+            case mi_Notify:
+
+                break;
+            }
+        }
+
+    }
+
+
+    cout << "end of program" << endl;
+
+
+  return 0;
+
+}
+
+
+void tst()
+{
 
     ObjectFactory of;
 
@@ -41,12 +136,12 @@ cout << "==========" << endl;
 
     ModuleMsg mm;
    LogicModule m1("mod1", 1,2,3);
-   Module m2("mod2", 11,12,13);
-   Module m23("mod23", 111,112,113);
+   ComModule m2("mod2", 11,12,13);
+   DisplayModule m23("mod23", 111,112,113);
 
     Module modules[] = {m1,m2,m23};
 
-    unsigned char * mmsg = mm.serialize(eiMsg::rv_POST, modules, 1);
+    unsigned char * mmsg = mm.serialize(0,eiMsg::rv_POST, modules, 1);
 
     ModuleMsg mmin;
     mmin.deserialize(mm.collection);
@@ -114,47 +209,9 @@ int32_t x;
 
 
 
-    return 0;
-
-    while(1)
-    {
-        com.processMessages();
-        ComIOCP::sleep(140);
-       while(com.msgQueue.Size() >0 )
-        {
-            const MsgRecord & rec = com.msgQueue.Dequeue();
-            switch(atoi(rec.msgid))
-            {
-            case mi_Logon:
-                logon.deserialize((unsigned char *)rec.msgbuffer);
-                printf("logon ==> %s %s\n", logon.name, logon.pwd);
-                msg.setBody("6", "logon response", 14);
-                com.sendMsg(msg);
-                break;
-            case mi_Ping:
-                p.deserialize((unsigned char *)rec.msgbuffer);
-                printf("recieved ping %.4s\n", p.token);
-                break;
-            case mi_Loopback:
-                l.deserialize((unsigned char *)rec.msgbuffer);
-                printf("recieved loopback %.4s\n", l.token);
-                break;
-            case mi_LogonResponse:
-                lr.deserialize((unsigned char *)rec.msgbuffer);
-                printf("logon response %.4s\n", lr.token);
-                break;
-            case mi_Notify:
-
-                break;
-            }
-        }
-
-    }
 
 
-    cout << "end of program" << endl;
 
 
-  return 0;
 
 }

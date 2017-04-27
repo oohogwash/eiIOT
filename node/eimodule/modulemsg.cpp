@@ -17,10 +17,15 @@ ModuleMsg::ModuleMsg() : Rest()
 
 }
 
-unsigned char * ModuleMsg::serialize(REST_VERB verb, Module * modules , int moduleLen)
+unsigned char * ModuleMsg::serialize( unsigned char * msg, REST_VERB verb, Module * modules , int moduleLen)
 {
   this->verb = verb;
-  unsigned char * msg = collection;
+  unsigned char * start = msg;
+  if(msg == 0)
+  {
+    msg = collection;
+    start = collection;
+  }
   msg = serUChar(msg, verb);
   msg = serInt16(msg, moduleLen);
   for(int idx =0; idx < moduleLen; idx++)
@@ -35,7 +40,8 @@ unsigned char * ModuleMsg::serialize(REST_VERB verb, Module * modules , int modu
 
 
 
-  collectionLen = msg-collection;
+  collectionLen = msg-start;
+
   return msg;
 }
 
@@ -59,7 +65,7 @@ unsigned char * ModuleMsg::deserialize (unsigned char * msg)
         modules[idx] =  ( Module *) eiKernel::ObjectFactory::getObject((char *)moduleClsid[idx]);
         delete(moduleClsid[idx]);
         msg = modules[idx]->deserialize(msg);
-        modules[idx]->dump();
+       // modules[idx]->dump();
     }
     collectionLen = msg - collection;
     return msg;

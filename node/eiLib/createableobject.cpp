@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <string.h>
 #include "createableobject.h"
 #include "msgdef.h"
@@ -10,6 +11,11 @@ namespace eiKernel
 CreateableObject::CreateableObject(const  char * clsid)
 {
     strcpyn(this->clsName,  MAX_CLSID_LEN, clsid);
+}
+
+void CreateableObject::dump()
+{
+    printf( "class name = %s ", clsName);
 }
 
 unsigned char * CreateableObject::serialize(unsigned char * msg)

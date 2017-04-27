@@ -10,13 +10,13 @@ namespace eiModule
 LogicModule::LogicModule():Module()
 {
     type = LMTYPE::lmt_connect;
-    strcpy(clsName, "Logic Module");
+    strcpy(clsName, "LogicModule");
 }
 
 LogicModule::LogicModule( const char * id, int16_t type,  int16_t priorityID, int16_t groupID):
     Module(id, LMTYPE::lmt_connect, priorityID, groupID)
 {
-    strcpy(this->clsName, "Logic Module");
+    strcpy(this->clsName, "LogicModule");
 
 }
 

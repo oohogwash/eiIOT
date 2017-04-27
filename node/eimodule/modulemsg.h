@@ -17,7 +17,7 @@ public:
     int16_t modulesLen;
 
     ModuleMsg();
-    unsigned char * serialize (eiMsg::REST_VERB verb, Module * modules, int moduleLen);
+    unsigned char * serialize (unsigned char * msg, eiMsg::REST_VERB verb, Module * modules, int moduleLen);
     unsigned char * deserialize (unsigned char * msg);
 
 

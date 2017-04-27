@@ -7,6 +7,26 @@
 namespace eiMsg
 {
 
+//this class is only used for testing
+class ComIOsm : public ComIO
+{
+    int comport;
+    int baudrate;
+    char mode[5];
+    unsigned char buffer[10240];
+    unsigned char * writeptr;
+    unsigned char * readptr;
+public:
+    ComIOsm();
+    int open();
+    void close();
+    int read(unsigned char * buffer, int size);
+    int write( const unsigned char * msgBuffer, const int len);
+    static void sleep(int ms);
+};
+
+
+
 class ComIOCP : public ComIO
 {
     int comport;
@@ -17,7 +37,7 @@ public:
     int open();
     void close();
     int read(unsigned char * buffer, int size);
-    int write( unsigned char * msgBuffer, const int len);
+    int write( const unsigned char * msgBuffer, const int len);
     static void sleep(int ms);
 };
 

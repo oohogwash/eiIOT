@@ -14,6 +14,7 @@ public:
     CreateableObject(const char * clsName);
     unsigned char * serialize(unsigned char * msg);
     unsigned char * deserialize( unsigned char * msg);
+    void dump();
 };
 }
 

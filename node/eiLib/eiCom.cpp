@@ -8,7 +8,7 @@
 
 
 #include "eiCom.h"
-
+#include "eimsg.h"
 
 #include "comIOcp.h"
 #include "rs232.h"
@@ -27,12 +27,13 @@ namespace eiMsg
 char msgtest[10230]; // for testing
 void EiCom::sendMsg(EiMsg & msg)
 {
-    memcpy(msgtest, msg.msg(), msg.len());
-    msgState = mrs_readSTX;
-    seqID=-1;
-    lastseqID=-1;
-    msgID[MSGIDLEN] = 0;
-    msgIdx=0;
+    io->write(msg.msg(), (int)msg.len());
+   // memcpy(msgtest, msg.msg(), msg.len());
+  //  msgState = mrs_readSTX;
+   // seqID=-1;
+   // lastseqID=-1;
+   // msgID[MSGIDLEN] = 0;
+   // msgIdx=0;
 }
 
 
@@ -137,27 +138,27 @@ EiMsg::EiMsg()
    memset(_msgBuffer, '_', MAXMSGLEN);
 }
 
-char * EiMsg::body()
+unsigned char * EiMsg::body()
 {
     return &_msgBuffer[MSGBODYOFFSET];
 }
-char *  EiMsg::msgID()
+unsigned char *  EiMsg::msgID()
 {
    return  _id;
 }
 long EiMsg::len(void)
 {
-    char buffer[MSGLENLEN +1];
+    unsigned char buffer[MSGLENLEN +1];
     buffer[MSGLENLEN] = 0;
     memcpy(buffer, &_msgBuffer[MSGLENOFFSET],  MSGLENLEN);
-    sscanf(buffer, "%4ld", &_len);
+    sscanf((char *)buffer, "%4ld", &_len);
     return _len + MSGHDRLEN;
 }
 
-char EiMsg::sequenceIDin = 0;
-char EiMsg::sequenceIDout = 0;
+unsigned char EiMsg::sequenceIDin = 0;
+unsigned char EiMsg::sequenceIDout = 0;
 
-char EiMsg::getSequenceID()
+unsigned char EiMsg::getSequenceID()
 {
   if(sequenceIDout>= 10)
   {
@@ -170,7 +171,16 @@ char EiMsg::getSequenceID()
   return sequenceIDout;
 }
 
-long EiMsg::setBody(const char * msgId, const void * body, long len)
+long EiMsg::setBody(const unsigned char *msgId, MsgBody * msgbody)
+{
+    unsigned char buffer[MAXMSGLEN];
+    unsigned char * ptr = msgbody->serialize(buffer);
+    long len = ptr - buffer;
+    return setBody(msgId, buffer, len);
+}
+
+
+long EiMsg::setBody(const unsigned char * msgId, const void * body, long len)
 {
 
   if(len > MAXBODYLEN)
@@ -179,14 +189,13 @@ long EiMsg::setBody(const char * msgId, const void * body, long len)
   }
   memset(_msgBuffer, ' ', len + MSGHDRLEN);
  _msgBuffer[len + MSGHDRLEN+2] = 0; // add a null terminator to allow printing as string
-  strncpy(&_msgBuffer[MSGIDOFFSET], msgId, min(MSGIDLEN,strlen(msgId)));
+  strncpy((char *)&_msgBuffer[MSGIDOFFSET], (char *)msgId, min(MSGIDLEN,strlen((const  char *)msgId)));
   memcpy(&_msgBuffer[MSGBODYOFFSET], (char *)body, len);
   _msgBuffer[MSGSTXOFFSET] =STX;
-//  _msgBuffer[len + MSGHDRLEN] = ETX;
   _msgBuffer[MSGSEQIDOFFSET] = getSequenceID();
-  char ch =MSGBODYOFFSET;// MSGHDRLEN;
+  char ch =MSGBODYOFFSET;
    _msgBuffer[MSGHDRLENOFFSET] = ch;
-   strncpy(&_msgBuffer[MSGSECIDOFFSET], "123456789",MSGSECIDLEN);
+   strncpy((char *)&_msgBuffer[MSGSECIDOFFSET], "123456789",MSGSECIDLEN);
    _msgBuffer[MSGCODEOFFSET]= eiMsgID;
    setLen( len);
     setID(msgId);
@@ -198,10 +207,10 @@ void EiMsg::setLen(const long msgLen)
     sprintf(buffer, "%4d", msgLen);
     memcpy(&_msgBuffer[MSGLENOFFSET], buffer, MSGLENLEN);
 }
-void EiMsg::setID(const char * id)
+void EiMsg::setID(const unsigned char * id)
 {
-    strncpy(&_msgBuffer[MSGIDOFFSET], id, min(MSGIDLEN,strlen(id)));
-    strncpy(_id, id, MSGIDLEN);
+    strncpy((char *)&_msgBuffer[MSGIDOFFSET], (char *)id, min(MSGIDLEN,strlen((char *)id)));
+    strncpy((char *)_id, (char *)id, MSGIDLEN);
     _id[MSGIDLEN] = '\0';
 }
 /*

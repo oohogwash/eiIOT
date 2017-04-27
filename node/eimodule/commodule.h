@@ -39,6 +39,7 @@ class ComModule: public Module
     };
 public:
     ComModule();
+    ComModule( const char * id, int16_t type,  int16_t priorityID, int16_t groupID);
     void dump() { Module::dump();}
     const char * moduleTypeText(){return "com";}
 };
