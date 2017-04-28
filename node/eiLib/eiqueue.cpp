@@ -13,7 +13,7 @@ EiQueue::EiQueue()
    rear = -1;
 }
 
-void EiQueue::Enqueue(const char * id, const char * msg, int len)
+void EiQueue::Enqueue(const char * id, const unsigned char * msg, int len)
 {
    // Don't allow the queue to grow more
    // than MAX_SIZE - 1

@@ -48,15 +48,7 @@ typedef enum _cmd
 }CMD;
 
 
-
-
-
-
-
 const int MSGBODYTOLONG = -1;
-
-   // STX, HDRLEN, MSGID, MSGLEN,SECID, MSGBODY,  ETX
-
 
 class MsgRecordMgr;
 class EiCom
@@ -70,30 +62,25 @@ class EiCom
         mrs_ReadBody
 
     }mrs;
-
-
-
     MsgRecordMgr * mgr;
     ComIO  *  io;
 
     int msgBodyLen;
 
     msgReadState msgState;
-    int seqID;
-    int lastseqID;
+    unsigned char seqID;
+    unsigned char lastseqID;
     int msgIdx;
     char msgID[MSGIDLEN+1];
-    char MSG[MAXMSGLEN+1];
-   static const int READBUFFER_SIZE  = 2048;
+    unsigned char MSG[MAXMSGLEN+1];
+    static const int READBUFFER_SIZE  = 2048;
     unsigned char readBuffer[READBUFFER_SIZE+1];
     static const int MAXSEQNUM = 10;
     static const int MINSEQNUM = 1;
-    int counter ;
+    int16_t counter ;
     MsgSeqNumAction msgSeqAction(char * msgID);
 
 public:
-
-
     EiCom( ComIO * io = 0)
     {
         this->io = io;
@@ -103,65 +90,13 @@ public:
         msgID[MSGIDLEN] = 0;
         counter = 0;
     }
-  EiQueue msgQueue;
+    EiQueue msgQueue;
     int init();
     int processMessages();
     void sendMsg(EiMsg &msg);
-    EiMsg readMsg();
     void shutdown();
-   // int run();
-
 };
 
-
-const int MSGRECORDSTACKSIZE = 10;
-
-
-
-
-class MsgRecordMgr
-{
-
-
-
- /*   typedef struct msgRecordStackEntry
-    {
-        msgRecord * rec;
-        msgRecord * next;
-    };
- */
- MsgRecord msgRecords[MSGRECORDSTACKSIZE];
-    int low=0;
-    int high = 0;
-    int lastAdded=0;
-
-   // msgRecordStackEntry stack[MSGRECORDSTACKSIZE]
-  public:
-    int addMessage(const  char * id, const char * msg, const int len)
-    {
-        int idx;
-        if(lastAdded < MSGRECORDSTACKSIZE)
-        {
-            lastAdded++;
-            high = lastAdded;
-       }
-        else
-        {
-            lastAdded = 0;
-
-        }
-        idx = lastAdded;
-
-        msgRecords[idx].update(id, len, msg);
-      //  printf("msg added %d\n", idx);
-        return 0;
-
-    }
-    MsgRecord * nextMessage()
-    {
-        return 0;
-    }
-};
 
 } // eiMsg
 

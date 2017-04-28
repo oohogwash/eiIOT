@@ -52,7 +52,7 @@ enum MsgSeqNumAction
 //msg values
 static char STX = 0x02;
 static char ETX = 0x03;
-static char eiMsgID = 'H';
+
 static const int MAXBODYLEN = MAXMSGLEN - MSGBODYOFFSET;
 static const char MSGHDRLEN = MSGBODYOFFSET;
 
@@ -93,15 +93,16 @@ class MsgBody : public eiKernel::CreateableObject
 
 class EiMsg
 {
+    unsigned char eiMsgID;
     unsigned char _msgBuffer[MAXMSGLEN +1];
-     long _len;
+    int16_t _msglen;
     unsigned char _id[MSGIDLEN+1];
 public:
     EiMsg();
 
     unsigned char * body();
     unsigned char *  msgID();
-    long len(void);
+    int16_t len(void);
     static unsigned char sequenceIDin;//iterate from 0..255 for each msg sent
     static unsigned char sequenceIDout; //iterate from 0..255 for each msg recd
     unsigned char getSequenceID();

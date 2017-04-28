@@ -13,6 +13,10 @@
 #include "comIOcp.h"
 #include "rs232.h"
 
+#include "msgdef.h"
+
+using namespace eiCom;
+
 namespace eiMsg
 {
 
@@ -80,62 +84,12 @@ long readStrmLong(char * strm, int len = 4)
 
 }
 
-EiMsg EiCom::readMsg()
-{
-    EiMsg msg;
-    char buffer[MAXMSGLEN];
-    MSGHEADER msgHeader;
-    char ch;
-    int cnt = 0;
-    while(ch = readStrmChar() ){
 
-        if(ch == STX)
-        {
-            readStrmString(msgHeader.eiMsgCode, 2);
-            //if( !strncmp(eiMsgID, msgHeader.eiMsgCode, 2) )
-            {
-                buffer[0]=STX;
-           //     strncpy(&buffer[1], eiMsgID, 2);
-                break; // it is an eiMsg
-            }
-        }
-
-        if(cnt >MAXMSGLEN)
-        {
-            return msg; // no messages that are identifiable.
-        }
-
-    }
-
-    buffer[MSGHDRLENOFFSET] = readStrmChar();
-    msgHeader.hdrlen = (int)buffer[MSGHDRLENOFFSET];
-
-
-
-
-    readStrmString(&buffer[MSGHDRLENOFFSET + 1], msgHeader.hdrlen - MSGHDRLENOFFSET -1);
-
-    strncpy(msgHeader.msgID , &buffer[MSGIDOFFSET], MSGIDLEN);
-
-    msgHeader.msgLen = readStrmLong(&buffer[MSGLENOFFSET]);
-
-    strncpy(msgHeader.secid, &buffer[MSGSECIDOFFSET], MSGSECIDLEN);
-
-       //read input stream until STX recieved.
-    char msgBody[MAXMSGLEN];
-
-    readStrmString(msgBody, msgHeader.msgLen);
-
-
-//   msg.setID(msgHeader.msgID);
-  msg.setBody(msgHeader.msgID, msgBody, msgHeader.msgLen );
-  msg.setLen(msgHeader.msgLen);
-  return msg;
-}
 
 EiMsg::EiMsg()
 {
    memset(_msgBuffer, '_', MAXMSGLEN);
+   eiMsgID=72;
 }
 
 unsigned char * EiMsg::body()
@@ -146,13 +100,9 @@ unsigned char *  EiMsg::msgID()
 {
    return  _id;
 }
-long EiMsg::len(void)
+int16_t EiMsg::len(void)
 {
-    unsigned char buffer[MSGLENLEN +1];
-    buffer[MSGLENLEN] = 0;
-    memcpy(buffer, &_msgBuffer[MSGLENOFFSET],  MSGLENLEN);
-    sscanf((char *)buffer, "%4ld", &_len);
-    return _len + MSGHDRLEN;
+    return _msglen;
 }
 
 unsigned char EiMsg::sequenceIDin = 0;
@@ -182,24 +132,23 @@ long EiMsg::setBody(const unsigned char *msgId, MsgBody * msgbody)
 
 long EiMsg::setBody(const unsigned char * msgId, const void * body, long len)
 {
-
-  if(len > MAXBODYLEN)
-  {
-      return MSGBODYTOLONG;
-  }
-  memset(_msgBuffer, ' ', len + MSGHDRLEN);
- _msgBuffer[len + MSGHDRLEN+2] = 0; // add a null terminator to allow printing as string
-  strncpy((char *)&_msgBuffer[MSGIDOFFSET], (char *)msgId, min(MSGIDLEN,strlen((const  char *)msgId)));
-  memcpy(&_msgBuffer[MSGBODYOFFSET], (char *)body, len);
-  _msgBuffer[MSGSTXOFFSET] =STX;
-  _msgBuffer[MSGSEQIDOFFSET] = getSequenceID();
-  char ch =MSGBODYOFFSET;
-   _msgBuffer[MSGHDRLENOFFSET] = ch;
-   strncpy((char *)&_msgBuffer[MSGSECIDOFFSET], "123456789",MSGSECIDLEN);
-   _msgBuffer[MSGCODEOFFSET]= eiMsgID;
-   setLen( len);
-    setID(msgId);
-    return len + MSGHDRLEN ;
+    char * secid ="1234";
+    static unsigned char numUCharsInHeader = 4;
+    // serialization adds 1 uchar for each string.
+    static unsigned char numSmallStringsInHeader = 2;
+    static unsigned char sizeofint16_t = 2;
+    unsigned char hdrlen = sizeofint16_t + numUCharsInHeader + strlen(secid) + strlen((const char *)msgId) + numSmallStringsInHeader;
+    unsigned char *msg = _msgBuffer;
+    msg = serUChar(msg, STX);
+    msg = serUChar(msg, eiMsgID);
+    msg = serUChar(msg, hdrlen);
+    msg = serSmallString(msg, (char *)msgId);
+    msg = serUChar(msg, getSequenceID());
+    msg = serSmallString(msg, secid);
+    //msg body starts  2 bytes (size of int16_t) as serChar adds size in before bodyh
+    msg = serCharArr(msg, (char *) body, len);
+    _msglen = hdrlen + len;
+    return _msglen;
 }
 void EiMsg::setLen(const long msgLen)
 {
@@ -213,40 +162,7 @@ void EiMsg::setID(const unsigned char * id)
     strncpy((char *)_id, (char *)id, MSGIDLEN);
     _id[MSGIDLEN] = '\0';
 }
-/*
-long eiMsg::setBody(const char * msgId, const void * body, long len)
-{
-    if(len > MAXBODYLEN)
-    {
-        return MSGBODYTOLONG;
-    }
-    strncpy(&_msgBuffer[MSGIDOFFSET], msgId, MSGIDLEN);
-    memcpy(&_msgBuffer[MSGBODYOFFSET], body, len);
-    _msgBuffer[MSGSTXOFFSET] =STX;
-    _msgBuffer[len + MSGHDRLEN] = ETX;
-    char ch = MSGHDRLEN;
-     _msgBuffer[MSGHDRLENOFFSET] = ch;
-     strncpy(&_msgBuffer[MSGSECIDOFFSET], "123456789",MSGSECIDLEN);
-    strncpy(&_msgBuffer[MSGCODEOFFSET], eiMsgID, strlen(eiMsgID));
 
-    setLen( len + MSGHDRLEN); // _len is in network byte order
-    setID(msgId);
-    return len + MSGHDRLEN; // total message size
-}
-void eiMsg::setLen(const long msgLen)
-{
-    char buffer[25];
-    sprintf(buffer, "%4d", msgLen);
-    memcpy(&_msgBuffer[MSGLENOFFSET], buffer, MSGLENLEN);
-}
-void eiMsg::setID(const char * id)
-{
-    strncpy(&_msgBuffer[MSGIDOFFSET], id, MSGIDLEN);
-    strncpy(_id, id, MSGIDLEN);
-    _id[MSGIDLEN] = '\0';
-}
-
-*/
 void EiMsg::dump()
 {
     printf("eiMsg ID %s, len %ld \n", msgID(), len());
@@ -275,43 +191,27 @@ MsgSeqNumAction EiCom::msgSeqAction(char * msgID)
 
 int EiCom::processMessages()
 {
-
     char msgType;
     char hdrlen=0;
-
     char msgBodyBuffer[MSGLENLEN +1];
     int readBufferIndex = 0;
     int n =1;
     int numProcessed =0;
     int ignore = 0;
-/*
-    if(msgIdx > -1)
-{
-    MSG[msgIdx+1] = 0;
-    printf("msg[%s]\n", MSG);
-}
-    */
+    unsigned char * msg;
+    unsigned char secid[32];
+
     while(n>0)
     {
       int n = io->read(readBuffer, io->comReadBufferLen);
-    //    printf("n=%d %d\n",n, io->comReadBufferLen);
       if(n <= 0)
       {
-        //  printf("empty, leave\n");
           return numProcessed;
       }
       else
       {
-
-
-
-
-
-      //  readBuffer[n] = 0;   /* always put a "null" at the end of a string! */
         for(readBufferIndex = 0; readBufferIndex < n; readBufferIndex++)
         {
-         //   printf("%d.",msgIdx);
-  //          printf("%c-%d ",readBuffer[readBufferIndex],  readBuffer[readBufferIndex]);
             numProcessed++;
             switch(msgState){
             case mrs_readSTX:
@@ -325,7 +225,6 @@ int EiCom::processMessages()
                 else
                 {
                     ignore++;
-                    //printf("ignore %c\n", buf[i]);
                 }
                 break;
             case mrs_readType:
@@ -336,7 +235,7 @@ int EiCom::processMessages()
                 }
                 else
                 {
-                    printf("invalid msg %c %d\n", readBuffer[readBufferIndex],readBuffer[readBufferIndex]);
+                    printf("invalid msg [%c] [%d]\n", readBuffer[readBufferIndex],readBuffer[readBufferIndex]);
                     // not a supported message so drop out
                     msgState = mrs_readSTX;
                     msgIdx = -1;
@@ -346,21 +245,19 @@ int EiCom::processMessages()
                 hdrlen= readBuffer[readBufferIndex];
                 MSG[msgIdx++]=readBuffer[readBufferIndex];
                 counter = hdrlen -msgIdx; //allow for STX/ msgType etc already read
-              //  printf("hdr len %d\n", hdrlen);
                 msgState = mrs_ReadHdr;
                 break;
             case mrs_ReadHdr:
                 MSG[msgIdx++]=readBuffer[readBufferIndex];
                 if(--counter <= 0)
                 {
-                    memcpy(msgBodyBuffer,&MSG[MSGLENOFFSET], MSGLENLEN);
-                    msgBodyBuffer[MSGLENLEN] = 0;
-                    msgBodyLen = counter = atoi(msgBodyBuffer);
-printf("counter = %d", counter);
-                    memcpy(msgID, &MSG[MSGIDOFFSET], MSGIDLEN);
-                    seqID = MSG[MSGSEQIDOFFSET];
+                    msg = &MSG[MSGHDRLENOFFSET +1];
+                    msg = deserSmallString(msg, (char *)msgID);
+                    msg = deserUChar(msg, &seqID);
+                    msg = deserSmallString(msg, (char *)secid);
+                    msg = deserInt16(msg, &counter);
+                    msgBodyLen = counter;
                     MsgSeqNumAction msna = msgSeqAction(msgID);
-                //    printf("msna = %d\n", msna);
                     switch(msna)
                     {
                     case msna_check_warn:
@@ -393,13 +290,7 @@ printf("counter = %d", counter);
 
                     }
                     lastseqID = seqID;
-                   // printf("sequence id = %d\n",seqID );
-                  //printf("msg body len %d\n", counter);
-
-
                     msgState = mrs_ReadBody;
-              //      printf("sequence id = [%c] %d\n", MSG[MSGSEQIDOFFSET], MSG[MSGSEQIDOFFSET]);
-
                 }
                 break;
             case mrs_ReadBody:
@@ -408,26 +299,17 @@ printf("counter = %d", counter);
                 if(--counter <=0)
                 {
                     MSG[msgIdx]= 0;
-                   // printf("msgidx = %d\n", msgIdx);
-                    msgQueue.Enqueue(msgID, &MSG[MSGBODYOFFSET], msgBodyLen);
-                   //mgr->addMessage(msgID, MSG, idx);
-                 //  printf("[%s]===[%s]\n", msgID, &MSG[MSGBODYOFFSET]);
-                //   printf("msg added queue size = %d\n", msgQueue.Size());
+                    msgQueue.Enqueue(msgID, &MSG[hdrlen], msgBodyLen);
                     msgState = mrs_readSTX;
                     msgIdx = -1;
                  }
-                else
-                {
-                   //i printf("(%c-%d)", MSG[msgIdx], msgIdx);
-                }
-                break;
+                 break;
             }
         }
       }
 
     }
     // setup buffer for next read if chars read in msg
-
     return readBufferIndex;
 }
 

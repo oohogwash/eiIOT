@@ -15,7 +15,7 @@ private:
    int rear;
 public:
    EiQueue();
-   void Enqueue(const char * id, const char * msg, int len);
+   void Enqueue(const char * id, const unsigned char * msg, int len);
    const MsgRecord & Dequeue();
    const MsgRecord & Front();
    int Size();

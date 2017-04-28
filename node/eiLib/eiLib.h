@@ -26,24 +26,10 @@ using namespace std;
 
 #include <stdint.h>
 
-//#include <string>
-
-
 
 namespace eiMsg
 {
 
-
-class Einfo
-{
-	EiCom com;
-    EiDisplay display;
-public:
-	Einfo(){}
-        void Init();
-        void Run();
-        void Dump(){ fprintf(stdout, "Einfo dump");}// cout <<"Einfo dump" <<endl;}
-};
 
 } // eiMsg
 
