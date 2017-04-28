@@ -13,8 +13,6 @@ int compModuleIndexEntries(const void * a, const void * b)
 }
 
 
-
-
 ModuleManager::ModuleManager()
 {
   strcpy(moduleGroupDesc[0], "Base");

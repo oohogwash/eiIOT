@@ -15,25 +15,18 @@ typedef enum tag_REST_VERB : unsigned char
 }REST_VERB;
 
 
+
+
 // msg and header item sizes
 static const int MAXMSGLEN = 512;
 static const int MSGIDLEN = 4;
-static const int MSGLENLEN = 4;
-static const int MSGSECIDLEN = 4;
 static const int MSGCODELEN = 1;
-static const int MSGHDRLENLEN = 1;
-static const int MSGSEQIDLEN = 1;
 
 enum hdroffsets
 {
     MSGSTXOFFSET    = 0,
     MSGCODEOFFSET   = MSGSTXOFFSET + 1,
-    MSGHDRLENOFFSET = MSGCODEOFFSET + MSGCODELEN,
-    MSGIDOFFSET     = MSGHDRLENOFFSET + MSGHDRLENLEN,
-    MSGSEQIDOFFSET  = MSGIDOFFSET + MSGIDLEN,
-    MSGLENOFFSET    = MSGSEQIDOFFSET       + MSGSEQIDLEN,
-    MSGSECIDOFFSET  = MSGLENOFFSET      + MSGLENLEN,
-    MSGBODYOFFSET   = MSGSECIDOFFSET    + MSGSECIDLEN
+    MSGHDRLENOFFSET = MSGCODEOFFSET + MSGCODELEN
 };
 
 
@@ -45,31 +38,8 @@ enum MsgSeqNumAction
     msna_check_error    // check the seq number if it does not match reject msg
 };
 
-
-
-
-
 //msg values
 static char STX = 0x02;
-static char ETX = 0x03;
-
-static const int MAXBODYLEN = MAXMSGLEN - MSGBODYOFFSET;
-static const char MSGHDRLEN = MSGBODYOFFSET;
-
-
-
-typedef struct msgHeader
-{
-    int hdrlen;
-    char eiMsgCode[MSGCODELEN+1];
-    char msgID[MSGIDLEN+1];
-    long msgLen;
-    char secid[MSGSECIDLEN + 1];
-}MSGHEADER;
-typedef union _val {
-    char buff[8];
-    long lval;
-}VAL;
 
 
 
@@ -77,17 +47,17 @@ typedef union _val {
 class MsgBody : public eiKernel::CreateableObject
 {
    public:
-  static int memcpyn(char *dest, int destlen, char * source, int sourcelen, bool addNullTerminator=false);
-  static int strcpyn(char * dest, int destlen, char * source);
-  virtual char mid() = 0;
-  static const int MAXTOKENLEN = 4;
-  unsigned char token[MAXTOKENLEN+1];
-  unsigned char tokenLen;
-  virtual unsigned char * serialize(unsigned char * msg);
-  virtual unsigned char * deserialize( unsigned char * msg);
-  MsgBody(): tokenLen(0){}
-  void setToken(unsigned char * token);
-  unsigned char * getToken();
+    static int memcpyn(char *dest, int destlen, char * source, int sourcelen, bool addNullTerminator=false);
+    static int strcpyn(char * dest, int destlen, char * source);
+    virtual char mid() = 0;
+    static const int MAXTOKENLEN = 4;
+    unsigned char token[MAXTOKENLEN+1];
+    unsigned char tokenLen;
+    virtual unsigned char * serialize(unsigned char * msg);
+    virtual unsigned char * deserialize( unsigned char * msg);
+    MsgBody(): tokenLen(0){}
+    void setToken(unsigned char * token);
+    unsigned char * getToken();
 
 };
 
@@ -96,6 +66,7 @@ class EiMsg
     unsigned char eiMsgID;
     unsigned char _msgBuffer[MAXMSGLEN +1];
     int16_t _msglen;
+    unsigned char _hdrlen;
     unsigned char _id[MSGIDLEN+1];
 public:
     EiMsg();

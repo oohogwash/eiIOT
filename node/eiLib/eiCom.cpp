@@ -94,7 +94,7 @@ EiMsg::EiMsg()
 
 unsigned char * EiMsg::body()
 {
-    return &_msgBuffer[MSGBODYOFFSET];
+    return &_msgBuffer[_hdrlen];
 }
 unsigned char *  EiMsg::msgID()
 {
@@ -137,30 +137,18 @@ long EiMsg::setBody(const unsigned char * msgId, const void * body, long len)
     // serialization adds 1 uchar for each string.
     static unsigned char numSmallStringsInHeader = 2;
     static unsigned char sizeofint16_t = 2;
-    unsigned char hdrlen = sizeofint16_t + numUCharsInHeader + strlen(secid) + strlen((const char *)msgId) + numSmallStringsInHeader;
+    _hdrlen = sizeofint16_t + numUCharsInHeader + strlen(secid) + strlen((const char *)msgId) + numSmallStringsInHeader;
     unsigned char *msg = _msgBuffer;
     msg = serUChar(msg, STX);
     msg = serUChar(msg, eiMsgID);
-    msg = serUChar(msg, hdrlen);
+    msg = serUChar(msg, _hdrlen);
     msg = serSmallString(msg, (char *)msgId);
     msg = serUChar(msg, getSequenceID());
     msg = serSmallString(msg, secid);
     //msg body starts  2 bytes (size of int16_t) as serChar adds size in before bodyh
     msg = serCharArr(msg, (char *) body, len);
-    _msglen = hdrlen + len;
+    _msglen = _hdrlen + len;
     return _msglen;
-}
-void EiMsg::setLen(const long msgLen)
-{
-    char buffer[25];
-    sprintf(buffer, "%4d", msgLen);
-    memcpy(&_msgBuffer[MSGLENOFFSET], buffer, MSGLENLEN);
-}
-void EiMsg::setID(const unsigned char * id)
-{
-    strncpy((char *)&_msgBuffer[MSGIDOFFSET], (char *)id, min(MSGIDLEN,strlen((char *)id)));
-    strncpy((char *)_id, (char *)id, MSGIDLEN);
-    _id[MSGIDLEN] = '\0';
 }
 
 void EiMsg::dump()
@@ -193,7 +181,6 @@ int EiCom::processMessages()
 {
     char msgType;
     char hdrlen=0;
-    char msgBodyBuffer[MSGLENLEN +1];
     int readBufferIndex = 0;
     int n =1;
     int numProcessed =0;
