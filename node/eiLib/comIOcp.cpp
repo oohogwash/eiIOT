@@ -12,26 +12,26 @@ namespace eiMsg
 {
 
 
+ReadWriteBuffer::ReadWriteBuffer()
+{
+    buffer = new unsigned char [bufflen];
+    readptr = writeptr = buffer;
+    memset(buffer, 0, bufflen);
+
+}
+
+ReadWriteBuffer::~ReadWriteBuffer()
+{
+    delete(buffer);
+}
+
 ComIOsm::ComIOsm()
 {
     comReadBufferLen = 2048;
-
-    // this class is only used for testing
     close();
 
 }
-int ComIOsm::open()
-{
-    readptr = writeptr = buffer;
-    return 0;
-}
-
-void ComIOsm::close()
-{
-    readptr = writeptr = 0;
-}
-
-int ComIOsm::read(unsigned char * buffer, int size)
+int ReadWriteBuffer::read(unsigned char * readBuffer, int size)
 {
     if(readptr + size >= writeptr)
     {
@@ -41,18 +41,63 @@ int ComIOsm::read(unsigned char * buffer, int size)
         }
         size = writeptr - readptr;
     }
-    memcpy(buffer, readptr, size);
+    memcpy(readBuffer, readptr, size);
     readptr += size;
     return size;
 }
 
 
-int ComIOsm::write(const unsigned char * msgBuffer, int len)
+int ReadWriteBuffer::write(const unsigned char * msgBuffer, int len)
 {
+    if(writeptr + len > buffer + bufflen)
+    {
+        memset(writeptr , 0, bufflen - (writeptr - buffer));
+        writeptr=buffer;
+    }
     memcpy(writeptr, msgBuffer, len);
     writeptr += len;
     return len;
 }
+
+
+
+int ComIOsm::open()
+{
+  //  readptr = writeptr = buffer;
+    return 0;
+}
+
+void ComIOsm::close()
+{
+  //  readptr = writeptr = 0;
+}
+int ComIOsm::read(unsigned char * readBuffer, int size)
+{
+   /* if(readptr + size >= writeptr)
+    {
+        if(readptr > writeptr)
+        {
+            readptr = writeptr;
+        }
+        size = writeptr - readptr;
+    }
+    memcpy(readBuffer, readptr, size);
+    readptr += size;
+    return size;
+    */
+    return readStream->read(readBuffer, size);
+}
+
+
+int ComIOsm::write(const unsigned char * msgBuffer, int len)
+{
+    /*memcpy(writeptr, msgBuffer, len);
+    writeptr += len;
+    return len;
+    */
+    return writeStream->write(msgBuffer, len);
+}
+
 void ComIOsm::sleep(int ms)
 {
 

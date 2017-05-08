@@ -18,15 +18,15 @@ void CreateableObject::dump()
     printf( "class name = %s ", clsName);
 }
 
-unsigned char * CreateableObject::serialize(unsigned char * msg)
+int CreateableObject::serialize(unsigned char ** msg)
 {
-  serSmallCharArr(msg, clsName, clsidLen);
-  return msg;
+  return serSmallCharArr(msg, clsName, clsidLen);
+
 }
-unsigned char * CreateableObject::deserialize( unsigned char * msg)
+int CreateableObject::deserialize(  unsigned char ** msg)
 {
-    msg =  deserSmallCharArr(msg, clsName, &clsidLen);
-    return msg;
+    return deserSmallCharArr(msg, clsName, &clsidLen);
+
 }
 
 

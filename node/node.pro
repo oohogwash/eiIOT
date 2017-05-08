@@ -37,7 +37,15 @@ SOURCES += main.cpp \
     eimodule/modulemsg.cpp \
     eiLib/msgdef.cpp \
     eiLib/objectfactory.cpp \
-    eiLib/createableobject.cpp
+    eiLib/createableobject.cpp \
+    test/test1.cpp \
+    test/util/FileCfg.cpp \
+    test/util/sharedmemory.cpp \
+    test/util/thread.cpp \
+    test/util/mapio.cpp \
+    test/util/io.cpp \
+    test/util/guid.cpp \
+    eiLib/collection.cpp
 
 HEADERS += \
     eiLib/comIO.h \
@@ -64,4 +72,14 @@ HEADERS += \
     eimodule/modulemsg.h \
     eiLib/msgdef.h \
     eiLib/objectfactory.h \
-    eiLib/createableobject.h
+    eiLib/createableobject.h \
+    test/test1.h \
+    test/util/FileCfg.h \
+    test/util/sharedmemory.h \
+    test/util/thread.h \
+    test/util/mapio.h \
+    test/util/io.h \
+    test/util/guid.h \
+    test/util/log.h \
+    test/util/easylogging++.h \
+    eiLib/collection.h

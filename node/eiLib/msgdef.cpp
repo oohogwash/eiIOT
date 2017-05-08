@@ -26,6 +26,52 @@ namespace eiCom {
 #endif
 
 
+eiInt::eiInt()
+{
+
+}
+
+int eiInt::deserialize( unsigned char ** msg)
+{
+    return deserInt32(msg, &value);
+}
+
+int eiInt::serialize(unsigned char ** msg)
+{
+    serInt32(msg, &value);
+}
+
+
+eiDouble::eiDouble()
+{
+    precision = 5;
+}
+
+int eiDouble::deserialize( unsigned char ** msg)
+{
+    return deserDouble(msg, &value);
+}
+
+int eiDouble::serialize(unsigned char ** msg)
+{
+    return serDouble(msg, value, precision);
+}
+
+
+eiString::eiString()
+{
+
+}
+
+int eiString::deserialize( unsigned char ** msg)
+{
+    return deserSmallString(msg, value);
+}
+
+int eiString::serialize(unsigned char ** msg)
+{
+    return serSmallString(msg, value);
+}
 
 
 
@@ -74,74 +120,88 @@ unsigned char * memcpyn2(unsigned char *dest, char * source, int len)
     memcpy(dest, source, len);
     return &dest[len];
 }
-unsigned char * serUChar( unsigned char * msg, unsigned char value)
+int serUChar( unsigned char ** msg, unsigned char value)
 {
-    *msg++ = value;
-    return msg;
+    **msg = value;
+    (*msg)++;
+    return 1;
 }
 
-unsigned char * serInt16(unsigned char * msg, int16_t value)
+int serInt16(unsigned char ** msg, int16_t value)
 {
    // *msg++ = 2; // length
     I16CH ich;
     ich.ui16 = htons(value);
-    memcpy(msg, ich.ch, 2 );
-    return msg+2;
-}
-unsigned char * serUInt16(unsigned char * msg, uint16_t value)
-{
-   // *msg++ = 2; // length
-    I16CH ich;
-    ich.i16 = htons(value);
-    memcpy(msg, ich.ch, 2 );
-    return msg+2;
-}
-unsigned char * serInt32(unsigned char * msg, int32_t value)
-{
-   // *msg++ = 4; // length
-    I32CH ich;
-    ich.i32 = htonl(value);
-    memcpy(msg, ich.ch, 4 );
-    return msg+4;
+    memcpy(*msg, ich.ch, 2 );
+    (*msg)+=2;
+    return 2;
 }
 
-unsigned char * serInt64(unsigned char * msg, int64_t value)
+
+int serUInt16(unsigned char * * msg, uint16_t value)
 {
-  //  *msg++ = 8; // length
+    I16CH ich;
+    ich.i16 = htons(value);
+    memcpy(*msg, ich.ch, 2 );
+    (*msg)+=2;
+    return 2;
+}
+
+int serInt32(unsigned char ** msg, int32_t * value)
+{
+    I32CH ich;
+    ich.i32 = htonl(*value++);
+    memcpy(*msg, ich.ch, 4 );
+    *msg+=4;
+    return 4;
+}
+
+int serInt32Arr(unsigned char ** msg, int32_t * value, unsigned char cnt)
+{
+   int sz= serUChar(msg, cnt);
+   while(cnt-- > 0){
+       sz += serInt32(msg, value++);
+    };
+    return sz;
+}
+
+int serInt64(unsigned char ** msg, int64_t value)
+{
     I64CH ich;
 #ifdef NOT_ARDUINO
 #ifndef _WIN
     ich.i64 = htonll(value);
 #endif
     #endif
-    memcpy(msg, ich.ch, 8 );
-    return msg+8;
+    memcpy(*msg, ich.ch, 8 );
+    return 8;
 }
-unsigned char * serFloat(unsigned char * msg, float value, char precision)
+int serFloat(unsigned char ** msg, float value, char precision)
 {
-    *msg++ = precision; // precision
+    int sz = serUChar(msg, precision);
     int64_t lval = value * precision;
-    msg = serInt64(msg, lval);
-    return msg;
+    sz += serInt64(msg, lval);
+    return sz;
 }
-unsigned char * serDouble(unsigned char * msg, double value, char precision)
+int serDouble(unsigned char ** msg, double value, char precision)
 {
-    *msg++ = precision; // precision
+    int sz = serUChar(msg, precision);
     int64_t lval = value * precision;
-    msg = serInt64(msg, lval);
-    return msg;
+    sz+=serInt64(msg, lval);
+    return sz;
 }
 
 
-unsigned char * serSmallCharArr(unsigned char * msg, char * value, unsigned char len)
+int serSmallCharArr(unsigned char ** msg, char * value, unsigned char len)
 {
     //max length 255
-    *msg++ = len; // length
-    memcpy(msg, value, len);
-    return msg+len;
+    int sz = serUChar(msg, len);
+    memcpy(*msg, value, len);
+    (*msg) += len;
+    return sz+len;
 }
 
-unsigned char * serSmallString(unsigned char * msg, char * value)
+int serSmallString(unsigned char ** msg, char * value)
 {
     int len = strlen(value);
     if(len >255)
@@ -151,124 +211,137 @@ unsigned char * serSmallString(unsigned char * msg, char * value)
     return serSmallCharArr(msg, value, len);
 }
 
-unsigned char * serCharArr(unsigned char * msg, char * value, uint16_t len)
+int serCharArr(unsigned char ** msg, char * value, uint16_t len)
 {
-    msg =  serInt16(msg, len); // length
-    memcpy(msg, value, len);
-    return msg+len;
+    int sz = serInt16(msg, len); // length
+    memcpy(*msg, value, len);
+    (*msg)+=len;
+    return sz+len;
 }
 
-unsigned char * serString(unsigned char * msg, char * value)
+int serString(unsigned char ** msg, char * value)
 {
     return serCharArr(msg, value, strlen(value));
 }
 
-unsigned char * deserUChar(unsigned char * msg, unsigned char *value)
+int deserUChar( unsigned char ** msg, unsigned char *value)
 {
-    *value = *msg++;
-    return msg;
+    *value = **msg;
+    (*msg)++;
+    return 1;
 }
 
-unsigned char * deserInt16(unsigned char * msg, int16_t  * value)
+int deserInt16( unsigned char ** msg, int16_t  * value)
 {
-  //  msg++; // length should be 2
     I16CH ich;
-    memcpy( ich.ch, msg, 2 );
-    msg+=2;
+    memcpy( ich.ch, *msg, 2 );
+    (*msg)+=2;
     *value = ntohs(ich.i16);
-    return msg;
+    return 2;
 }
 
-unsigned char * deserUInt16(unsigned char * msg, uint16_t  * value)
+int deserUInt16( unsigned char ** msg, uint16_t  * value)
 {
-   // msg++; // length should be 2
     I16CH ich;
-    memcpy( ich.ch, msg, 2 );
-    msg+=2;
+    memcpy( ich.ch, *msg, 2 );
+    (*msg)+=2;
     *value = ntohs(ich.ui16);
-    return msg;
+    return 2;
 }
-
-
-unsigned char * deserInt32(unsigned char * msg, int32_t * value)
+int deserInt32( unsigned char ** msg, int32_t * value)
 {
-   // msg++; // length should be 4
     I32CH ich;
-    memcpy(ich.ch, msg, 4 );
+    memcpy(ich.ch, *msg, 4 );
     *value = htonl(ich.i32);
-    return msg+4;
+    (*msg)+=4;
+    return 4;
 }
 
-unsigned char * deserInt64(unsigned char * msg, int64_t  * value)
+int deserInt32Arr( unsigned char ** msg, int32_t * value, unsigned char * cnt)
 {
-   // msg++ ; // length is always 8 so ignor
+   int sz = deserUChar(msg, cnt);
+   unsigned char num = *cnt;
+   while(num-- >0)
+    {
+       sz += deserInt32(msg, value++);
+    };
+    return sz;
+}
+
+int deserInt64( unsigned char ** msg, int64_t  * value)
+{
     I64CH ich;
-    memcpy(ich.ch, msg, 8 );
+    memcpy(ich.ch, *msg, 8 );
     #ifdef NOT_ARDUINO
 #ifndef _WIN
     *value = htonll(ich.i64);
 #endif
     #endif
-
-    return msg+8;
+    (*msg)+=8;
+    return 8;
 }
 
 
-unsigned char * deserFloat(unsigned char * msg, float * value)
+int deserFloat( unsigned char ** msg, float * value)
 {
-    int precision = *msg++; // precision
+    unsigned char precision=0;
+    int sz = deserUChar(msg, &precision); // precision
     I64CH lval;
-    msg = deserInt64(msg, &lval.i64);
+    sz += deserInt64(msg, &lval.i64);
     *value = lval.i64 / precision;
-    return msg;
+    return sz;
 }
-unsigned char * deserDouble(unsigned char * msg, double * value)
+int deserDouble( unsigned char ** msg, double * value)
 {
-    int precision = *msg++; // precision
+    unsigned char precision=0;
+    int sz = deserUChar(msg, &precision); // precision
     I64CH lval;
-    msg = deserInt64(msg, &lval.i64);
+    sz += deserInt64(msg, &lval.i64);
     *value = lval.i64 / precision;
-    return msg;
+    return sz;
 }
 
 
-unsigned char * deserSmallCharArr(unsigned char * msg, char * value, unsigned char  * len)
+int deserSmallCharArr( unsigned char ** msg, char * value, unsigned char  * len)
 {
     //max length 255
-    *len = *msg++ ; // length
-    memcpy(value, msg, *len);
-    return msg+*len;
+   //*len = *msg++ ; // length
+    int sz = deserUChar(msg, len);
+    memcpy(value, *msg, *len);
+    (*msg) += *len;
+    return sz+*len;
 }
 
-unsigned char * deserSmallString(unsigned char * msg, char * value, unsigned char * length)
+int deserSmallString( unsigned char ** msg, char * value, unsigned char * length)
 {
     unsigned char len;
-    msg = deserSmallCharArr(msg, value, &len);
+    int sz = deserSmallCharArr(msg, value, &len);
     value[len]=0;
     if(length != 0)
     {
         *length = len;
     }
-    return msg;
+    return sz;
 }
 
-unsigned char * deserCharArr(unsigned char * msg, char * value, uint16_t * len)
+int deserCharArr( unsigned char ** msg, char * value, uint16_t * len)
 {
-    msg =  deserUInt16(msg, len); // length
+    int sz =  deserUInt16(msg, len); // length
     memcpy(value, msg,  *len);
-    return msg+*len;
+    (*msg) += *len;
+    return sz+*len;
 }
 
-unsigned char * deserString(unsigned char * msg, char * value, uint16_t * length)
+int deserString( unsigned char ** msg, char * value, uint16_t * length)
 {
    uint16_t len;
-   msg = deserCharArr(msg, value, &len);
+   int sz = deserCharArr(msg, value, &len);
    value[len] = 0;
    if(length != 0)
    {
        *length = len;
    }
-   return msg;
+   return sz;
 }
 
 

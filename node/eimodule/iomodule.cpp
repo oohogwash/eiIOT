@@ -14,17 +14,14 @@ IoModule::IoModule( const char * id, int16_t type,  int16_t priorityID, int16_t 
     strcpy(this->clsName, "IoModule");
 
 }
-unsigned char * IoModule::serialize(unsigned char * msg)
+int IoModule::serialize(unsigned char ** msg)
 {
-   msg = Module::serialize(msg);
- //  msg = serSmallString(msg, logic);
-   return msg;
+   return  Module::serialize(msg);
 }
 
-unsigned char * IoModule::deserialize( unsigned char * msg)
+int IoModule::deserialize( unsigned char ** msg)
 {
-    msg = Module::deserialize(msg);
-   // msg = deserSmallString(msg, logic);
-    return msg;
+    return Module::deserialize(msg);
+
 }
 } // eiMsgModule

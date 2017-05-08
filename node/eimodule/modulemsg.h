@@ -15,10 +15,12 @@ class ModuleMsg : public eiMsg::Rest
 public:
     Module ** modules ;
     int16_t modulesLen;
-
     ModuleMsg();
-    unsigned char * serialize (unsigned char * msg, eiMsg::REST_VERB verb, Module * modules, int moduleLen);
-    unsigned char * deserialize (unsigned char * msg);
+    int serialize(unsigned char ** msg);
+    int deserialize ( unsigned char ** msg);
+
+    int serialize (unsigned char ** msg, eiMsg::REST_VERB verb, Module * modules, int moduleLen);
+
 
 
 };

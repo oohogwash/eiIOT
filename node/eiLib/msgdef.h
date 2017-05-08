@@ -19,6 +19,38 @@ char * memcpyn2(char *dest, char * source, int len);
 unsigned char * memcpyn2(unsigned char *dest, char * source, int len);
 
 
+class eiString
+{
+    static const int MAX_LEN = 256;
+    char value[MAX_LEN];
+public:
+    eiString();
+    int deserialize( unsigned char ** msg);
+    int serialize(unsigned char ** msg);
+};
+
+class eiInt
+{
+    int32_t value;
+public:
+    eiInt();
+    int deserialize( unsigned char ** msg);
+    int serialize(unsigned char ** msg);
+};
+
+class eiDouble
+{
+    double value;
+    int precision;
+public:
+    eiDouble();
+    int deserialize( unsigned char ** msg);
+    int serialize(unsigned char ** msg);
+};
+
+
+
+
 union I16CH
 {
     char ch[2];
@@ -42,29 +74,31 @@ union I64CH
     uint64_t ui64;
 };
 
-unsigned char * serUChar( unsigned char * msg, unsigned char value);
-unsigned char * serInt16(unsigned char * msg, int16_t value);
-unsigned char * serUInt16(unsigned char * msg, uint16_t value);
-unsigned char * serInt32(unsigned char * msg, int32_t value);
-unsigned char * serInt64(unsigned char * msg, int64_t value);
-unsigned char * serFloat(unsigned char * msg, float value, char precision);
-unsigned char * serDouble(unsigned char * msg, double value, char precision);
-unsigned char * serSmallCharArr(unsigned char * msg, char * value, unsigned char len);
-unsigned char * serCharArr(unsigned char * msg, char * value, uint16_t len);
-unsigned char * serString(unsigned char * msg, char * value);
-unsigned char * serSmallString(unsigned char * msg, char * value);
+int serUChar( unsigned char ** msg, unsigned char value);
+int serInt16(unsigned char ** msg, int16_t value);
+int serUInt16(unsigned char ** msg, uint16_t value);
+int serInt32(unsigned char ** msg, int32_t * value);
+int serInt32Arr(unsigned char ** msg, int32_t * value, unsigned char cnt = 1);
+int serInt64(unsigned char ** msg, int64_t value);
+int serFloat(unsigned char ** msg, float value, char precision);
+int serDouble(unsigned char ** msg, double value, char precision);
+int serSmallCharArr(unsigned char ** msg, char * value, unsigned char len);
+int serCharArr(unsigned char ** msg, char * value, uint16_t len);
+int serString(unsigned char ** msg, char * value);
+int serSmallString(unsigned char ** msg, char * value);
 
-unsigned char * deserUChar(unsigned char * msg, unsigned char *value);
-unsigned char * deserInt16(unsigned char * msg, int16_t  * value);
-unsigned char * deserUInt16(unsigned char * msg, uint16_t  * value);
-unsigned char * deserInt32(unsigned char * msg, int32_t * value);
-unsigned char * deserInt64(unsigned char * msg, int64_t  * value);
-unsigned char * deserFloat(unsigned char * msg, float * value);
-unsigned char * deserDouble(unsigned char * msg, double * value);
-unsigned char * deserSmallCharArr(unsigned char * msg, char * value, unsigned char  * len);
-unsigned char * deserCharArr(unsigned char * msg, char * value, uint16_t * len);
-unsigned char * deserString(unsigned char * msg, char * value, uint16_t * length=0);
-unsigned char * deserSmallString(unsigned char * msg, char * value, unsigned char * length=0);
+int deserUChar( unsigned char ** msg, unsigned char *value);
+int deserInt16( unsigned char ** msg, int16_t  * value);
+int deserUInt16( unsigned char ** msg, uint16_t  * value);
+int deserInt32( unsigned char ** msg, int32_t * value);
+int deserInt32Arr( unsigned char ** msg, int32_t * value, unsigned char * len);
+int deserInt64( unsigned char ** msg, int64_t  * value);
+int deserFloat( unsigned char ** msg, float * value);
+int deserDouble( unsigned char ** msg, double * value);
+int deserSmallCharArr( unsigned char ** msg, char * value, unsigned char  * len);
+int deserCharArr( unsigned char ** msg, char * value, uint16_t * len);
+int deserString( unsigned char ** msg, char * value, uint16_t * length=0);
+int deserSmallString( unsigned char ** msg, char * value, unsigned char * length=0);
 
 
 

@@ -4,22 +4,34 @@
 #include "logicModule.h"
 #include "displaymodule.h"
 #include "iomodule.h"
+#include "msgdef.h"
 
 using namespace eiModule;
 
+
+
+
+
 typedef enum objId : int
 {
-    oi_logicModule = 1,
+    oi_string,
+    oi_int,
+    oi_float,
+    oi_logicModule,
     oi_displayModule,
     oi_ioModule,
     oi_comModule
 }objId;
 
 static  const char * objName [] = {
+    "string",
+    "int",
+    "float",
   "LogicModule",
   "DisplayModule",
   "IoModule",
    "ComModule",
+
    0
 };
 
@@ -49,6 +61,12 @@ void * ObjectFactory::getObject( const char * id)
 {
     switch(findObject(id))
     {
+    case oi_int:
+        return new int;
+    case oi_string:
+        return new char *;
+    case oi_float:
+        return new float;
     case oi_displayModule:
         return new DisplayModule();
     case oi_ioModule:

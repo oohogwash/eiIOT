@@ -16,8 +16,8 @@ private:
 public:
    EiQueue();
    void Enqueue(const char * id, const unsigned char * msg, int len);
-   const MsgRecord & Dequeue();
-   const MsgRecord & Front();
+   MsgRecord & Dequeue();
+   MsgRecord & Front();
    int Size();
    bool isEmpty();
 };

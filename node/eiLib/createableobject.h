@@ -12,8 +12,8 @@ public:
     unsigned char clsidLen;
     CreateableObject(){}
     CreateableObject(const char * clsName);
-    unsigned char * serialize(unsigned char * msg);
-    unsigned char * deserialize( unsigned char * msg);
+    int serialize(unsigned char ** msg);
+    int deserialize(  unsigned char ** msg);
     void dump();
 };
 }

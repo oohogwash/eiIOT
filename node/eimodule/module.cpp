@@ -17,22 +17,22 @@ Module::Module(const char * id, int16_t type, int16_t priorityID, int16_t groupI
     strcpy(clsName, "Module");
 }
 
-unsigned char * Module::serialize(unsigned char * msg)
+int Module::serialize(unsigned char ** msg)
 {
-   msg = serSmallString(msg, id);
-   msg = serInt16(msg, type);
-   msg = serInt16(msg, priorityID);
-   msg = serInt16(msg, groupID);
-   return msg;
+   int sz = serSmallString(msg, id);
+   sz += serInt16(msg, type);
+   sz += serInt16(msg, priorityID);
+   sz += serInt16(msg, groupID);
+   return sz;
 }
 
-unsigned char * Module::deserialize( unsigned char * msg)
+int Module::deserialize(  unsigned char ** msg)
 {
-    msg = deserSmallString(msg, id);
-    msg = deserInt16(msg, &type);
-    msg = deserInt16(msg, &priorityID);
-    msg = deserInt16(msg, &groupID);
-    return msg;
+    int sz = deserSmallString(msg, id);
+    sz += deserInt16(msg, &type);
+    sz += deserInt16(msg, &priorityID);
+    sz += deserInt16(msg, &groupID);
+    return sz;
 }
 
 

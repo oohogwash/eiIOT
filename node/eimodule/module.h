@@ -23,8 +23,8 @@ public:
    char id[MAXIDLEN +1];
    void dump();
  //  virtual const char * moduleTypeText() = 0;
-   unsigned char *  serialize(unsigned char * msg);
-   unsigned char *  deserialize( unsigned char * msg);
+   int serialize(unsigned char ** msg);
+   int  deserialize(  unsigned char ** msg);
 
 
 };

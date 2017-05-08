@@ -14,7 +14,9 @@ MSGINFO messageInfo [] = {
     {mi_LogonResponse, "Logon response.", "Response from logon request.", msna_set},
     {mi_Logoff, "Logoff", "Log off session.", msna_ignore},
     {mi_Ping, "Ping", "Ping test", msna_ignore},
+    {mi_PingResponse, "Ping response", "Response to a previous ping", msna_ignore},
     {mi_Loopback, "Loopback", "Loopback test", msna_ignore},
+    {mi_LoopbackResponse, "Loopback response", "Response to loopback message", msna_ignore},
     {mi_Publish, "Publish", "Publish information to topic", msna_check_warn},
     {mi_Subscribe, "Subscribe", "Subscribe to messages published on topic.", msna_check_warn},
     {mi_Notify, "Notify", "Notify event occurance.", msna_check_warn},
@@ -49,73 +51,113 @@ int MsgBody::memcpyn(char *dest, int destlen, char * source, int sourcelen, bool
     return lcopy;
 }
 
-
-
-void MsgBody::setToken(unsigned char * token)
+void MsgBody::setToken(const unsigned char * token)
 {
-    tokenLen = strcpyn((char *)this->token, MAXTOKENLEN, (char *)token);
+    strcpy((char *)this->token, (char *)token);
 }
 
-
-unsigned char * MsgBody::serialize(unsigned char * msg)
+int MsgBody::serialize(unsigned char ** msg)
 {
-    *msg++ = tokenLen;
-    memcpyn((char *)msg, MAXTOKENLEN, (char *)token, tokenLen );
-    return msg + tokenLen ;
+    int sz = serSmallString(msg, (char *)token);
+    sz += serUChar(msg, numNVP);
+    for(int idx = 0; idx < numNVP; idx++)
+    {
+        sz += serSmallString(msg, nvp[idx].name);
+        sz += serSmallString(msg, nvp[idx].value);
+     }
+    return sz;
 }
 
-unsigned char * MsgBody::deserialize( unsigned char * msg)
+int MsgBody::deserialize(  unsigned char ** msg)
 {
-    tokenLen =  *msg++;
-     memcpyn((char *)token, MAXTOKENLEN, (char *)msg, tokenLen,true);
-    return msg + tokenLen;
+    int sz = deserSmallString(msg, (char *)token);
+    sz += deserUChar(msg, &numNVP);
+    for(int idx = 0; idx < numNVP; idx++)
+    {
+        sz += deserSmallString(msg, nvp[idx].name);
+        sz += deserSmallString(msg, nvp[idx].value);
+     }
+    return sz;
 }
 
+int MsgBody::setNameValuePair(char *name, char *value)
+{
+    for(int idx = 0; idx < numNVP; idx++)
+    {
+        if(!strcmp(nvp[idx].name, name) )
+        {
+            strcpy(nvp[idx].value,value);
+            return idx;
+        }
+    }
+    if(numNVP < NUMNVP)
+    {
+        strcpy(nvp[numNVP].name, name);
+        strcpy(nvp[numNVP++].value, value);
+        return numNVP;
+    }
+    else
+    {
+        return -1; // overflow
+    }
+}
+char * MsgBody::getNameValuePair(char *name)
+{
+    for(int idx = 0; idx < numNVP; idx++)
+    {
+        if(!strcmp(nvp[idx].name, name) )
+        {
+            return nvp[idx].value;
+        }
 
 
+    }
+    return NULL; // not found
+}
 
-
-unsigned char * MsgBody::getToken()
+const unsigned char * MsgBody::getToken() const
 {
     return token;
 }
-
 
 Logon::Logon()
 {
 
 }
 
-Logon::Logon(char * name, char * pwd)
+Logon::Logon(char * name, char * pwd, char * domain)
 {
-  nameLen = strcpyn(this->name, NAMELEN, name);
-  pwdLen = strcpyn(this->pwd, PWDLEN, pwd);
+  strcpy(this->name, name);
+  strcpy(this->pwd,  pwd);
+  strcpy(this->domain, domain);
 }
 
 
-unsigned char * Logon::serialize(unsigned char * msg)
+int Logon::serialize(unsigned char ** msg)
 {
-  msg = MsgBody::serialize(msg);
-  msg = serSmallCharArr(msg, name,nameLen);
-  msg = serSmallCharArr(msg, pwd, pwdLen); // encrypt this later
-  return msg;
+  int sz = MsgBody::serialize(msg);
+  sz += serSmallString(msg, name);
+  sz += serSmallString(msg, pwd); // encrypt this later
+  sz += serSmallString(msg, domain);
+  return sz;
 }
 
-unsigned char * Logon::deserialize( unsigned char * msg)
+int Logon::deserialize(  unsigned char ** msg)
 {
-  msg = MsgBody::deserialize(msg);
-  msg = deserSmallString(msg, name, &nameLen);
-  msg = deserSmallString(msg, pwd, &pwdLen);
-  return msg;
+  int sz = MsgBody::deserialize(msg);
+  sz += deserSmallString(msg, name);
+  sz += deserSmallString(msg, pwd);
+  sz += deserSmallString(msg, domain);
+  return sz;
 }
 
 
-unsigned char * EmptyMsgBody::serialize(unsigned char * msg)
+int EmptyMsgBody::serialize(unsigned char ** msg)
 {
   return  MsgBody::serialize(msg);
 }
 
-unsigned char * EmptyMsgBody::deserialize( unsigned char * msg)
+int EmptyMsgBody::deserialize( unsigned char ** msg)
 {
     return MsgBody::deserialize(msg);
 }
@@ -131,36 +173,57 @@ Loopback::Loopback(char * text)
 }
 
 
-unsigned char * Loopback::serialize(unsigned char * msg)
+int Loopback::serialize(unsigned char ** msg)
 {
-  msg = MsgBody::serialize(msg);
-  serSmallString(msg, text);
-  return msg;
+  int sz = MsgBody::serialize(msg);
+  sz += serSmallString(msg, text);
+  return sz;
 }
-unsigned char * Loopback::deserialize( unsigned char * msg)
+int Loopback::deserialize(  unsigned char ** msg)
 {
-  msg = MsgBody::deserialize(msg);
-  deserSmallString(msg, text, &textLen);
-  return msg;
+  int sz = MsgBody::deserialize(msg);
+  sz += deserSmallString(msg, text, &textLen);
+  return sz;
 }
-
-
-unsigned char *  PubsubBase::serialize(unsigned char * msg)
+LoopbackResponse::LoopbackResponse()
 {
-    msg = MsgBody::serialize(msg);
-    msg = serString(msg,topic);
-    msg = serSmallString(msg, id);
-    msg = serCharArr(msg, psmsg, psmsgLen);
-    return msg;
+
 }
 
-unsigned char *  PubsubBase::deserialize( unsigned char * msg)
+LoopbackResponse::LoopbackResponse(char * text)
 {
-    msg = MsgBody::deserialize(msg);
-    msg = deserString(msg,topic);
-    msg = deserSmallString(msg, id);
-    msg = deserCharArr(msg, psmsg, &psmsgLen);
-    return msg;
+  textLen = strcpyn(this->text, MAXTEXTLEN, text);
+}
+
+int LoopbackResponse::serialize(unsigned char ** msg)
+{
+  int sz = MsgBody::serialize(msg);
+  sz += serSmallString(msg, text);
+  return sz;
+}
+int LoopbackResponse::deserialize(  unsigned char ** msg)
+{
+  int sz = MsgBody::deserialize(msg);
+  sz += deserSmallString(msg, text, &textLen);
+  return sz;
+}
+
+int PubsubBase::serialize(unsigned char ** msg)
+{
+    int sz = MsgBody::serialize(msg);
+    sz += serString(msg,topic);
+    sz += serSmallString(msg, id);
+    sz += serCharArr(msg, psmsg, psmsgLen);
+    return sz;
+}
+
+int  PubsubBase::deserialize(  unsigned char ** msg)
+{
+    int sz = MsgBody::deserialize(msg);
+    sz += deserString(msg,topic);
+    sz += deserSmallString(msg, id);
+    sz += deserCharArr(msg, psmsg, &psmsgLen);
+    return sz;
 }
 
 
@@ -172,21 +235,26 @@ Get::Get()
 
 Get::Get( char * item)
 {
-    itemLen = strcpyn(this->item, MAXITEMLEN, item );
+   strcpy(this->item, item );
 }
 
-unsigned char * Get::serialize(unsigned char * msg)
+int Get::serialize(unsigned char ** msg)
 {
-  msg = MsgBody::serialize(msg);
-  serCharArr(msg, item, itemLen);
-  return msg;
+  int sz = MsgBody::serialize(msg);
+  sz += serSmallString(msg, item);
+  return sz;
 }
-unsigned char * Get::deserialize( unsigned char * msg)
+int Get::deserialize(  unsigned char ** msg)
 {
-    msg = MsgBody::deserialize(msg);
-    deserCharArr(msg, item, &itemLen);
-    return msg;
+    int sz = MsgBody::deserialize(msg);
+    sz += deserSmallString(msg, item);
+    return sz;
 }
+void Get::setItem(char *item)
+{
+    strcpy(this->item, item);
+}
+
 
 
 Put::Put()
@@ -198,18 +266,18 @@ Put::Put(char * item, char * data, int len) : Get(item)
 }
 
 
-unsigned char * Put::serialize(unsigned char * msg)
+int Put::serialize(unsigned char ** msg)
 {
-    msg = Get::serialize(msg);
-    msg = serCharArr(msg, info, infoLen);
-    return msg;
+    int sz = Get::serialize(msg);
+    sz += serCharArr(msg, info, infoLen);
+    return sz;
 }
 
-unsigned char * Put::deserialize( unsigned char * msg)
+int Put::deserialize(  unsigned char ** msg)
 {
-    msg = Get::deserialize(msg);
-    msg = deserCharArr(msg, info, &infoLen);
-    return msg;
+    int sz = Get::deserialize(msg);
+    sz += deserCharArr(msg, info, &infoLen);
+    return sz;
 }
 
 
@@ -244,14 +312,14 @@ int Rest::Post(char * item, char * collection, int collectionLen)
 }
 
 
-unsigned char * Rest::serialize(unsigned char * msg)
+int Rest::serialize(unsigned char ** msg)
 {
-    return msg;
+    return 0;
 }
 
-unsigned char * Rest::deserialize( unsigned char * msg)
+int Rest::deserialize(  unsigned char ** msg)
 {
-    return msg;
+    return 0;
 }
 
 

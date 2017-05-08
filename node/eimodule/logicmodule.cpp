@@ -20,18 +20,18 @@ LogicModule::LogicModule( const char * id, int16_t type,  int16_t priorityID, in
 
 }
 
-unsigned char * LogicModule::serialize(unsigned char * msg)
+int LogicModule::serialize(unsigned char ** msg)
 {
-   msg = Module::serialize(msg);
-   msg = serSmallString(msg, logic);
-   return msg;
+   int sz = Module::serialize(msg);
+   sz += serSmallString(msg, logic);
+   return sz;
 }
 
-unsigned char * LogicModule::deserialize( unsigned char * msg)
+int LogicModule::deserialize( unsigned char ** msg)
 {
-    msg = Module::deserialize(msg);
-    msg = deserSmallString(msg, logic);
-    return msg;
+    int sz = Module::deserialize(msg);
+    sz += deserSmallString(msg, logic);
+    return sz;
 }
 
 

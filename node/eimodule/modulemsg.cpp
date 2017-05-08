@@ -17,39 +17,44 @@ ModuleMsg::ModuleMsg() : Rest()
 
 }
 
-unsigned char * ModuleMsg::serialize( unsigned char * msg, REST_VERB verb, Module * modules , int moduleLen)
+int ModuleMsg::serialize(unsigned char **msg)
 {
-  this->verb = verb;
-  unsigned char * start = msg;
-  if(msg == 0)
-  {
-    msg = collection;
-    start = collection;
-  }
-  msg = serUChar(msg, verb);
-  msg = serInt16(msg, moduleLen);
-  for(int idx =0; idx < moduleLen; idx++)
-  {
-    msg = serSmallString(msg, modules[idx].clsName); //there are derived types of modules so serialise clsid values
-  }
-  for(int idx =0; idx < moduleLen; idx++)
-  {
-      msg =  modules[idx].serialize(msg);
-  }
-
-
-
-
-  collectionLen = msg-start;
-
-  return msg;
+    return 0;
 }
 
-unsigned char * ModuleMsg::deserialize (unsigned char * msg)
+int ModuleMsg::serialize(  unsigned char ** msg, REST_VERB verb, Module * modules , int moduleLen)
+{
+  this->verb = verb;
+  unsigned char * start = *msg;
+  if( msg == 0)
+  {
+    *msg = collection;
+    start = collection;
+  }
+  int sz = serUChar(msg, verb);
+  sz += serInt16(msg, moduleLen);
+  for(int idx =0; idx < moduleLen; idx++)
+  {
+    sz += serSmallString(msg, modules[idx].clsName); //there are derived types of modules so serialise clsid values
+  }
+  for(int idx =0; idx < moduleLen; idx++)
+  {
+      sz +=  modules[idx].serialize(msg);
+  }
+
+
+
+
+  collectionLen = sz;
+
+  return sz;
+}
+
+int ModuleMsg::deserialize ( unsigned char ** msg)
 {
     //Note this method creates new array and new Module pointers in the array
-    msg = deserUChar(msg, (unsigned char *)&verb);
-    msg = deserInt16(msg,  (int16_t *)&modulesLen);
+    int sz = deserUChar(msg, (unsigned char *)&verb);
+    sz += deserInt16(msg,  (int16_t *)&modulesLen);
     modules = new Module * [modulesLen];
     //int x = modulesLen;
     //char moduleClsid[x][CreateableObject::MAX_CLSID_LEN];
@@ -58,17 +63,17 @@ unsigned char * ModuleMsg::deserialize (unsigned char * msg)
     for(int idx =0; idx < modulesLen; idx++)
     {
       moduleClsid[idx] = new char[CreateableObject::MAX_CLSID_LEN];
-      msg = deserSmallString( msg , moduleClsid[idx]); //there are derived types of modules so serialise clsid values
+      sz += deserSmallString( msg , moduleClsid[idx]); //there are derived types of modules so serialise clsid values
     }
     for(int idx =0; idx < modulesLen; idx++)
     {
         modules[idx] =  ( Module *) eiKernel::ObjectFactory::getObject((char *)moduleClsid[idx]);
         delete(moduleClsid[idx]);
-        msg = modules[idx]->deserialize(msg);
+        sz += modules[idx]->deserialize(msg);
        // modules[idx]->dump();
     }
-    collectionLen = msg - collection;
-    return msg;
+    collectionLen = sz;
+    return sz;
 }
 
 

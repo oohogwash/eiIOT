@@ -23,8 +23,8 @@ class MsgRecord
 public:
     char msgid[MSGIDLEN+1];
     int msglen;
-    char msgbuffer[MAXMSGLEN];
-    void update(const char * id, const int len, const char * buffer)
+    unsigned char msgbuffer[MAXMSGLEN];
+    void update(const char * id, const int len, const unsigned char * buffer)
     {
         memcpy(msgbuffer, buffer, len);
         msgbuffer[len]=0;
@@ -33,9 +33,9 @@ public:
         msglen = len;
     }
 
-     char * getBuffer()
+     unsigned char ** getBuffer()
     {
-        return msgbuffer;
+        return ( unsigned char **) &msgbuffer;
     }
 };
 

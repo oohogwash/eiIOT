@@ -20,70 +20,39 @@ using namespace eiCom;
 namespace eiMsg
 {
 
+unsigned char _itoaBuffer[20];
+
+const unsigned char * itoa(int i)
+{
+    sprintf((char *)_itoaBuffer, "%d", i);
+    return _itoaBuffer;
+}
+
+char * itoa(int i, char * buffer)
+{
+    sprintf(buffer, "%d", i);
+    return buffer;
+}
 
 #ifndef min
 #define min(a,b) ((a<b)? a : b)
 #endif
 
 
+void EiCom::setToken(unsigned char * newToken)
+{
+    memcpy(token, newToken, strlen((char *)newToken));
+}
 
-
-char msgtest[10230]; // for testing
 void EiCom::sendMsg(EiMsg & msg)
 {
     io->write(msg.msg(), (int)msg.len());
-   // memcpy(msgtest, msg.msg(), msg.len());
-  //  msgState = mrs_readSTX;
-   // seqID=-1;
-   // lastseqID=-1;
-   // msgID[MSGIDLEN] = 0;
-   // msgIdx=0;
 }
 
 
 
 
 int testIdx = 0;
-char readStrmChar()
-{
-    if(testIdx > MAXMSGLEN)
-    {
-        testIdx = 0;
-    }
-    return msgtest[testIdx++];
-}
-int readStrmString(char buffer [], int cnt)
-{
-    int idx = 0;
-    while(idx < cnt)
-    {
-        if(testIdx > MAXMSGLEN)
-        {
-            testIdx = 0;
-        }
-        buffer[idx++] = msgtest[testIdx++];
-    }
-    return idx;
-}
-
-long readStrmLong(char * strm, int len = 4)
-{
-   char buffer[1024];
-   buffer[len]=0;
-   if(strm == 0)
-   {
-       readStrmString(buffer, len);
-   }
-   else
-   {
-       strncpy(buffer, strm, len);
-   }
-   long val;
-   sscanf(buffer,"%4d", &val);
-   return val;
-
-}
-
 
 
 EiMsg::EiMsg()
@@ -121,16 +90,17 @@ unsigned char EiMsg::getSequenceID()
   return sequenceIDout;
 }
 
-long EiMsg::setBody(const unsigned char *msgId, MsgBody * msgbody)
+long EiMsg::setBody(const unsigned char *msgId,  MsgBody * msgbody)
 {
     unsigned char buffer[MAXMSGLEN];
-    unsigned char * ptr = msgbody->serialize(buffer);
-    long len = ptr - buffer;
-    return setBody(msgId, buffer, len);
+    unsigned char * ptr = buffer;
+    int sz = msgbody->serialize(&ptr);
+  //  long len = ptr - buffer;
+    return setBody(msgId, buffer, sz);
 }
 
 
-long EiMsg::setBody(const unsigned char * msgId, const void * body, long len)
+long EiMsg::setBody(const unsigned char * msgId, const void * body, const long len)
 {
     char * secid ="1234";
     static unsigned char numUCharsInHeader = 4;
@@ -139,14 +109,14 @@ long EiMsg::setBody(const unsigned char * msgId, const void * body, long len)
     static unsigned char sizeofint16_t = 2;
     _hdrlen = sizeofint16_t + numUCharsInHeader + strlen(secid) + strlen((const char *)msgId) + numSmallStringsInHeader;
     unsigned char *msg = _msgBuffer;
-    msg = serUChar(msg, STX);
-    msg = serUChar(msg, eiMsgID);
-    msg = serUChar(msg, _hdrlen);
-    msg = serSmallString(msg, (char *)msgId);
-    msg = serUChar(msg, getSequenceID());
-    msg = serSmallString(msg, secid);
+    serUChar(&msg, STX);
+    serUChar(&msg, eiMsgID);
+    serUChar(&msg, _hdrlen);
+    serSmallString(&msg, (char *)msgId);
+    serUChar(&msg, getSequenceID());
+    serSmallString(&msg, secid);
     //msg body starts  2 bytes (size of int16_t) as serChar adds size in before bodyh
-    msg = serCharArr(msg, (char *) body, len);
+    serCharArr(&msg, (char *) body, len);
     _msglen = _hdrlen + len;
     return _msglen;
 }
@@ -176,7 +146,37 @@ MsgSeqNumAction EiCom::msgSeqAction(char * msgID)
 
 }
 
+void EiCom::sendMsg(const int16_t msgId,  MsgBody *msgBody)
+{
+    sendMsg(itoa(msgId), msgBody);
+}
 
+void EiCom::sendMsg(const unsigned char *msgId,  MsgBody *msgbody)
+{
+    EiMsg msg;
+    msg.setBody(msgId, msgbody);
+    sendMsg( msg);
+}
+
+void EiCom::sendMsg(const int16_t msgId, const void *body, const int16_t len)
+{
+    sendMsg((const unsigned char *)itoa(msgId), body, len);
+}
+void EiCom::sendMsg(const unsigned char *msgId, const void *body,  const int16_t len)
+{
+    EiMsg msg;
+    msg.setBody(msgId, body, len);
+    sendMsg(msg);
+}
+
+// if the mid and msgbody are aligned not need to specifiy it explicitly
+void EiCom::sendMsg( MsgBody & msgbody)
+{
+    EiMsg msg;
+    const int16_t iid = msgbody.mid();
+    msg.setBody(itoa(iid), &msgbody);
+    sendMsg(msg);
+}
 int EiCom::processMessages()
 {
     char msgType;
@@ -185,7 +185,7 @@ int EiCom::processMessages()
     int n =1;
     int numProcessed =0;
     int ignore = 0;
-    unsigned char * msg;
+     unsigned char * msg;
     unsigned char secid[32];
 
     while(n>0)
@@ -239,10 +239,10 @@ int EiCom::processMessages()
                 if(--counter <= 0)
                 {
                     msg = &MSG[MSGHDRLENOFFSET +1];
-                    msg = deserSmallString(msg, (char *)msgID);
-                    msg = deserUChar(msg, &seqID);
-                    msg = deserSmallString(msg, (char *)secid);
-                    msg = deserInt16(msg, &counter);
+                    deserSmallString(&msg, (char *)msgID);
+                    deserUChar(&msg, &seqID);
+                    deserSmallString(&msg, (char *)secid);
+                    deserInt16(&msg, &counter);
                     msgBodyLen = counter;
                     MsgSeqNumAction msna = msgSeqAction(msgID);
                     switch(msna)

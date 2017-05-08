@@ -46,6 +46,18 @@ static char STX = 0x02;
 
 class MsgBody : public eiKernel::CreateableObject
 {
+    static const int NVP_NAMELEN = 64;
+    static const int NVP_VALUELEN =256;
+    struct NVP
+    {
+        char name[NVP_NAMELEN+1];
+        char value[NVP_VALUELEN+1];
+    };
+
+    static const int NUMNVP = 10;
+    unsigned char numNVP;
+    NVP nvp[NUMNVP];
+
    public:
     static int memcpyn(char *dest, int destlen, char * source, int sourcelen, bool addNullTerminator=false);
     static int strcpyn(char * dest, int destlen, char * source);
@@ -53,11 +65,13 @@ class MsgBody : public eiKernel::CreateableObject
     static const int MAXTOKENLEN = 4;
     unsigned char token[MAXTOKENLEN+1];
     unsigned char tokenLen;
-    virtual unsigned char * serialize(unsigned char * msg);
-    virtual unsigned char * deserialize( unsigned char * msg);
-    MsgBody(): tokenLen(0){}
-    void setToken(unsigned char * token);
-    unsigned char * getToken();
+    virtual int serialize(unsigned char ** msg);
+    virtual int deserialize(  unsigned char ** msg);
+    MsgBody(): tokenLen(0), numNVP(0){}
+    void setToken(const unsigned char * token);
+    const unsigned char * getToken() const;
+    int setNameValuePair(char * name, char * value);
+    char * getNameValuePair(char *name);
 
 };
 
@@ -78,13 +92,12 @@ public:
     static unsigned char sequenceIDout; //iterate from 0..255 for each msg recd
     unsigned char getSequenceID();
     const unsigned char * msg(){return _msgBuffer;}
-    long setBody(const  char * msgId, const void * body, long len)
+    long setBody(const  char * msgId, const void * body, const long len)
     { return setBody( (unsigned char * ) msgId, body, len);}
-    long setBody(const  unsigned char * msgId, MsgBody * msgbody);
-    long setBody(const   char * msgId, MsgBody * msgbody)
+    long setBody(const  unsigned char * msgId,  MsgBody * msgbody);
+    long setBody(const   char * msgId,  MsgBody * msgbody)
     {return setBody((const  unsigned char *) msgId,  msgbody);}
-
-    long setBody(const unsigned char * msgId, const void * body, long len);
+    long setBody(const unsigned char * msgId, const void * body, const long len);
     void setLen(const long msgLen);
     void setID( const unsigned char * id);
     void dump();
@@ -99,8 +112,8 @@ class EmptyMsgBody : public MsgBody
 
 public:
   EmptyMsgBody(){}
-  unsigned char *  serialize(unsigned char * msg);
-  unsigned char *  deserialize( unsigned char * msg);
+  int  serialize(unsigned char ** msg);
+  int  deserialize(unsigned char ** msg);
 
 
 };
@@ -118,7 +131,9 @@ typedef enum MessageId
     mi_LogonResponse,
     mi_Logoff,
     mi_Ping,
+    mi_PingResponse,
     mi_Loopback,
+    mi_LoopbackResponse,
     mi_Publish,
     mi_Subscribe,
     mi_Notify,
@@ -130,8 +145,6 @@ typedef enum MessageId
     mi_Get,
     mi_Set,
     mi_Rest
-
-    
 }MESSAGE_ID;
 
 typedef struct msginfo{
@@ -148,17 +161,20 @@ class Logon : public MsgBody
 {
   const static int NAMELEN = 40;
   const static int PWDLEN = 40;
+  const static int DOMAINLEN = 40;
 public:
   char mid(){return mi_Logon;}
   Logon();
-  Logon(char * name, char * pwd);
+  Logon(char * name, char * pwd, char * domain);
 
+  char domain[DOMAINLEN+1];
+  unsigned char domainLen;
   char name[NAMELEN+1];
   unsigned char nameLen;
   char pwd[PWDLEN+1];
   unsigned char pwdLen;
-  unsigned char * serialize(unsigned char * msg);
-  unsigned char * deserialize( unsigned char * msg);
+  int serialize(unsigned char ** msg);
+  int deserialize(  unsigned char ** msg);
 };
 
 
@@ -186,22 +202,40 @@ public:
   Ping(){}
 };
 
+class PingResponse : public EmptyMsgBody
+{
+public:
+  char mid(){return mi_PingResponse;}
+  PingResponse(){}
+};
 
 class Loopback : public MsgBody
 {
     static const int MAXTEXTLEN = 256;
     unsigned char textLen;
-
 public:
   char text[MAXTEXTLEN+1];
   char mid(){return mi_Loopback;}
   Loopback();
   Loopback(char * text);
-  unsigned char * serialize(unsigned char * msg);
-  unsigned char * deserialize( unsigned char * msg);
+  int serialize(unsigned char ** msg);
+  int deserialize(unsigned char ** msg);
 
 };
 
+class LoopbackResponse: public MsgBody
+{
+    static const int MAXTEXTLEN = 256;
+    unsigned char textLen;
+public:
+  char text[MAXTEXTLEN+1];
+  char mid(){return mi_LoopbackResponse;}
+  LoopbackResponse();
+  LoopbackResponse(char * text);
+  int serialize(unsigned char ** msg);
+  int deserialize(  unsigned char ** msg);
+
+};
 
 class PubsubBase : public MsgBody
 {
@@ -225,40 +259,40 @@ public:
       idLen = strcpyn(this->id, MAXIDLEN, id);
       psmsgLen =  memcpyn(psmsg, MAXPSMSGLEN, msg, msglen);
   }
-  unsigned char * serialize(unsigned char * msg);
-  unsigned char * deserialize( unsigned char * msg);
+  int serialize(unsigned char ** msg);
+  int deserialize(  unsigned char ** msg);
 
 };
 
 
 
-class Publish : public PubsubBase
+class Publication : public PubsubBase
 {
 
 public:
   char mid(){return mi_Publish;}
-  Publish(){}
-  Publish(char * topic, char * id, char * msg, int len):
+  Publication(){}
+  Publication(char * topic, char * id, char * msg, int len):
       PubsubBase(  topic, id, msg, len){}
 };
 
-class Subscribe : public PubsubBase
+class Subscription : public PubsubBase
 {
 
 public:
   char mid(){return mi_Subscribe;}
-  Subscribe(){}
-  Subscribe(char * topic, char * id, char * msg, int len) :
+  Subscription(){}
+  Subscription(char * topic, char * id, char * msg, int len) :
       PubsubBase(  topic, id, msg, len){}
 };
 
-class Notify : public PubsubBase
+class Notification : public PubsubBase
 {
 
 public:
   char mid(){return mi_Notify;}
-  Notify(){}
-  Notify(char * topic, char * eventId, char * event, int eventLen):
+  Notification(){}
+  Notification(char * topic, char * eventId, char * event, int eventLen):
     PubsubBase(  topic, eventId, event, eventLen){}
 };
 
@@ -287,12 +321,7 @@ public:
   Request( char * id, char * cmd, int len);
 };
 
-class Response : public MsgBody
-{
-public:
-    char mid(){return mi_Response;}
-    Response();
-};
+
 
 class Get : public MsgBody
 {
@@ -301,13 +330,20 @@ class Get : public MsgBody
 
 public:
     char item[MAXITEMLEN+1];
-    uint16_t itemLen;
     char mid(){return mi_Get;}
   Get();
   Get( char * item);
-  unsigned char * serialize(unsigned char * msg);
-  unsigned char * deserialize( unsigned char * msg);
+  int serialize(unsigned char ** msg);
+  int deserialize(  unsigned char ** msg);
+  void setItem(char * item);
 
+};
+
+class Response : public Get
+{
+public:
+    char mid(){return mi_Response;}
+    Response(){}
 };
 
 class Put : public Get
@@ -320,8 +356,8 @@ public:
     char mid(){return mi_Set;}
     Put();
     Put(char * item, char * info, int len);
-    unsigned char * serialize(unsigned char * msg);
-    unsigned char * deserialize( unsigned char * msg);
+    int serialize(unsigned char ** msg);
+    int deserialize(  unsigned char ** msg);
 
 };
 
@@ -335,8 +371,8 @@ public:
     char mid(){return mi_Set;}
     Post();
     Post(char * item, char * info, int len);
-    unsigned char * serialize(unsigned char * msg);
-    unsigned char * deserialize( unsigned char * msg);
+    int serialize(unsigned char ** msg);
+    int deserialize( unsigned char ** msg);
 
 };
 
@@ -359,8 +395,8 @@ public:
     void Delete(char * item);
     int Put(char * item, char * collection, int collectionLen);
     int Post(char * item, char * collection, int collectionLen);
-    unsigned char * serialize(unsigned char * msg);
-    unsigned char * deserialize( unsigned char * msg);
+    int serialize(unsigned char ** msg);
+    int deserialize(  unsigned char ** msg);
 
 
 };

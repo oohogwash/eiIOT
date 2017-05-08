@@ -39,7 +39,7 @@ void EiQueue::Enqueue(const char * id, const unsigned char * msg, int len)
 }
 
 MsgRecord empty;
-const MsgRecord & EiQueue::Dequeue()
+ MsgRecord & EiQueue::Dequeue()
 {
    if ( isEmpty() )
     {
@@ -57,7 +57,7 @@ const MsgRecord & EiQueue::Dequeue()
    return data[idx];
 }
 
-const MsgRecord & EiQueue::Front()
+ MsgRecord & EiQueue::Front()
 {
    if ( isEmpty() )
       // throw new QueueEmptyException();
